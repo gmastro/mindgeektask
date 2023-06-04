@@ -24,30 +24,49 @@ return new class extends Migration
             $table
                 ->id();
             $table
-                ->string('source')
-                ->unique();
+                ->string('source', 512)
+                ->unique('unq_remote_feeds_s')
+                ->comment('source to examine and download content from');
             $table
-                ->integer('counter')
+                ->boolean('is_active')
+                ->default(1)
+                ->comment('deactivate feed for invalid links');
+            $table
+                ->integer('download_counter')
                 ->default(0)
-                ->nullable();
+                ->nullable()
+                ->comment('times dowloaded content');
+            $table
+                ->integer('examine_counter')
+                ->default(0)
+                ->nullable()
+                ->comment('times invoked an examiner class');
+            $table
+                ->string('process_handler', 255)
+                ->comment('class to process content');
+            $table
+                ->string('download_handler', 255)
+                ->comment('download class name to prefer, using curl or file_get_contents');
+            $table
+                ->string('examine_handler', 255)
+                ->comment('examiner class name to prefer, using curl or get_headers');
             $table->timestamps();
         });
 
         Schema::create('pornstars', function (Blueprint $table) {
             $table = $this->tableDefault($table);
             $table
-                ->id();
+                ->unsignedBigInteger('id');
             $table
                 ->foreignId('remote_feed_id')
                 ->constrained('remote_feeds', 'id', 'fk_pornstars_remote_feeds')
                 ->cascadeOnDelete();
             $table
-                ->string('name')
-                ->unique();
+                ->string('name', 128);
             $table
-                ->string('link');
+                ->string('link', 512);
             $table
-                ->string('licence');
+                ->string('license', 32);
             $table
                 ->boolean('wlStatus');
             $table
@@ -58,6 +77,8 @@ return new class extends Migration
                 ->json('aliases');
             $table
                 ->timestamps();
+            $table
+                ->primary('id');
         });
 
         Schema::create('thumbnails', function (Blueprint $table) {
@@ -71,13 +92,18 @@ return new class extends Migration
             $table
                 ->string('url');
             $table
-                ->integer('width');
+                ->integer('width')
+                ->default(234);
             $table
-                ->integer('height');
+                ->integer('height')
+                ->default(344);
             $table
-                ->set('media', ['pc','mobile','tablet']);
+                ->set('media', ['pc','mobile','tablet'])
+                ->default('pc');
             $table
                 ->timestamps();
+            $table
+                ->unique(['url', 'media'], 'unq_thumbnails_um');
         });
 
         Schema::create('pornstars_thumbnails', function(Blueprint $table) {
@@ -90,8 +116,10 @@ return new class extends Migration
                 ->foreignId('thumbnail_id')
                 ->constrained('thumbnails', 'id', 'fk_pornstars_thumbnails_thumbnails')
                 ->cascadeOnDelete();
+            $table->
+                timestamps();
             $table
-                ->unique(['pornstar_id', 'thumbnail_id']);
+                ->primary(['pornstar_id', 'thumbnail_id']);
         });
     }
 

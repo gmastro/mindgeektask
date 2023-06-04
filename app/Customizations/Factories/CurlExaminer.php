@@ -75,6 +75,7 @@ class CurlExaminer implements InterfaceExaminer
         \curl_setopt($ch, CURLOPT_FILETIME, true);
         
         if(\curl_exec($ch) === false || \curl_errno($ch)) {
+            \curl_close($ch);
             return;
         }
 
