@@ -27,6 +27,7 @@ demand the following compensations;
     - [Tests](#tests)
     - [Processes/Queues](#processesqueues)
   - [Developement](#developement)
+  - [Run](#run)
 
 ## Task
 
@@ -301,3 +302,11 @@ Back to [Home](#guide) - [Contents](#contents) - [Development](#developement)
 
 -----
 
+## Run
+
+Start with seeding the database.
+There is only a single tuple to be added, thus;
+
+```bash
+$ ./vendor/bin/sail artisan db:seed --class=RemoteFeedsSeeder
+```
