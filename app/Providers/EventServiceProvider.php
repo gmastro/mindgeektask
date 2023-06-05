@@ -3,8 +3,9 @@
 namespace App\Providers;
 
 use App\Events\ChirpCreated;
-use App\Events\RemoteFeedDeleted;
+use App\Events\RemoteFeedDeleting;
 use App\Events\RemoteFeedEvent;
+use App\Listeners\RemoteFeedCleanupListener;
 use App\Listeners\RemoteFeedListener;
 use App\Listeners\SendChirpCreatedNotifications;
 use Illuminate\Auth\Events\Registered;
@@ -26,8 +27,8 @@ class EventServiceProvider extends ServiceProvider
         ChirpCreated::class => [
             SendChirpCreatedNotifications::class,
         ],
-        RemoteFeedDeleted::class => [
-
+        RemoteFeedDeleting::class => [
+            RemoteFeedCleanupListener::class,
         ],
         RemoteFeedEvent::class => [
             RemoteFeedListener::class,
