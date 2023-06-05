@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Pornstars;
+use App\Models\RemoteFeeds;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -59,6 +60,7 @@ class PornstarsFactory extends Factory
 
         return [
             'id'            => fake()->unique()->randomNumber(9),
+            'remote_feed_id'=> RemoteFeeds::factory(),
             'name'          => fake()->name(),
             'link'          => fake()->unique()->url(),
             'license'       => fake()->randomElement(['REGULAR', 'PREMIUM']),

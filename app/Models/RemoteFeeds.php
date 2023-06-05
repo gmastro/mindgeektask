@@ -12,11 +12,6 @@ class RemoteFeeds extends Model
 {
     use HasFactory;
 
-    /**
-     * {@inheritdoc}
-     *
-     * Override default behaviour when a new tuple is added
-     */
     protected static function boot()
     {
         parent::boot();
@@ -24,7 +19,6 @@ class RemoteFeeds extends Model
             $model->is_active,
             $model::withoutRelations()
         ));
-        // requires thumbnails as should be removed from Redis/Filesystem
         static::deleting(fn($model) => RemoteFeedDeleting::dispatch($model::withoutRelations('pornstars')));
     }
 
