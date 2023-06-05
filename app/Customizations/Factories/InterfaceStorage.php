@@ -11,7 +11,8 @@ interface InterfaceStorage
      * Return the status code response from a performed a HEAD request
      *
      * @access  public
+     * @param   string $source Url to get information from
      * @return  string|bool
      */
-    public function store(): string|bool;
+    public function store(string $source): string|bool;
 }

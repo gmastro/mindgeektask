@@ -45,10 +45,10 @@ abstract class AbstractDownload implements InterfaceDownload
      *
      * Sets an instance of selected {@see \Illuminate\Contracts\Filesystem\Filesystem}
      *
-     * @access  protected
+     * @access  public
      * @var     \Illuminate\Contracts\Filesystem\Filesystem $disk
      */
-    protected $disk;
+    public $disk;
 
     /**
      * Extension Property

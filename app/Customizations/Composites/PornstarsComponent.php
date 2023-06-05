@@ -2,11 +2,14 @@
 
 namespace App\Customizations\Composites;
 
+use App\Customizations\Adapters\RedisStorageAdapter;
+use App\Customizations\Factories\CurlDownload;
 use App\Models\Pornstars;
 use App\Models\PornstarsThumbnails;
 use App\Models\RemoteFeeds;
 use App\Models\Thumbnails;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 
 class PornstarsComponent implements InterfaceComponent
@@ -118,13 +121,13 @@ class PornstarsComponent implements InterfaceComponent
         Pornstars::upsert(
             \array_intersect_key($this->map[Pornstars::class], \array_flip($this->keys['delete'][Pornstars::class])),
             'id',
-            ['id', 'name', 'link', 'license', 'wl_status', 'attributes', 'stats', 'aliases']
+            ['id', 'name', 'link', 'license', 'wl_status', 'attributes', 'stats', 'aliases', 'timestamps']
         );
 
         Thumbnails::upsert(
             \array_intersect_key($this->map[Thumbnails::class], \array_flip($this->keys['delete'][Thumbnails::class])),
             'url',
-            ['url', 'width', 'height', 'media']
+            ['url', 'width', 'height', 'media', 'timestamps']
         );
     }
 
@@ -173,6 +176,27 @@ class PornstarsComponent implements InterfaceComponent
             DB::transaction($this->create(), 3);
         }
         
+        $deletedKeys = $this->keys['delete'][Thumbnails::class];
+        $feedId = $this->feed->id;
+        
+        Redis::pipeline(function(Redis $pipe) use ($feedId, $deletedKeys) {
+            $redisStorage = new RedisStorageAdapter($pipe);
+
+            // remove old thumbnails
+            $paths = \array_map(fn($thumb) => \md5($thumb), $deletedKeys);
+            $redisStorage->unlink($paths);
+            $disk = Storage::disk('thumbnails');
+            $disk->delete($paths);
+
+            // add/refresh thumbnails
+            $thumbs = Thumbnails::select('url')::all();
+            foreach ($thumbs as $t) {
+                $source = $t->url;
+                $redisStorage->setDownload(new CurlDownload($source, $disk));
+                $redisStorage->store($source);
+            }
+        });
+
         return $returnFlag;
     }
 }
