@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Customizations\Composites\ExamineComponent;
-use App\Customizations\Factories\CurlExaminer;
 use App\Events\RemoteFeedEvent;
 use App\Models\RemoteFeeds;
 use Illuminate\Bus\Queueable;
