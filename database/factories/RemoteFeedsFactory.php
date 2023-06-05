@@ -12,9 +12,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pornstars>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\RemoteFeeds>
  */
-class RemoteFeedsFactory extends RemoteFeeds
+class RemoteFeedsFactory extends Factory
 {
     protected $model = RemoteFeeds::class;
 
