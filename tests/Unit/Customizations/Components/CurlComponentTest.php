@@ -4,14 +4,17 @@ declare(strict_types=1);
 namespace Tests\Unit\Customizations\Components;
 
 use App\Customizations\Components\CurlComponent;
+use App\Customizations\Components\FOpenComponent;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
-/**
- * #[CoversClass(App\Customizations\Factories\CurlExaminer::class)]
- */
+
+#[CoversClass(CurlExaminer::class)]
+#[UsesClass(FOpenComponent::class)]
 class CurlComponentTest extends TestCase
 {
     const CURL_HEADER = [
@@ -89,7 +92,7 @@ class CurlComponentTest extends TestCase
         $uuid = Uuid::uuid4()->toString();
         $storage = config('filesystems.disks.downloads');
         $filename = \sprintf("%s/%s", $storage['root'], $uuid);
-        $out = \fopen($filename, "wb");
+        $out = new FOpenComponent($filename);
 
         if($out === false) {
             $this->assertTrue(false);
@@ -98,11 +101,10 @@ class CurlComponentTest extends TestCase
 
         $sut = new CurlComponent(self::CURL_GET + [
             CURLOPT_URL     => $url,
-            CURLOPT_FILE    => $out,
+            CURLOPT_FILE    => $out->getHandler(),
         ]);
         $sut->run();
-        \fclose($out);
-
+        unset($out);
         $contents = $sut->getContents();
         $this->assertNotEmpty($contents);
         $this->assertTrue($contents);
