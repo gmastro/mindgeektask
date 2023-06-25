@@ -106,7 +106,7 @@ class FileOpenComponent implements InterfaceStorage
     public function execute(): bool
     {
         $this->setErrorCode(InterfaceErrorCodes::FILE_PATH, $this->filename === null);
-        $this->setErrorCode(InterfaceErrorCodes::DIRECTORY_PATH, \is_dir($this->filename));
+        $this->setErrorCode(InterfaceErrorCodes::DIRECTORY_PATH, $this->filename !== null && \is_dir($this->filename));
         if($this->hasErrors()) {
             return false;
         }

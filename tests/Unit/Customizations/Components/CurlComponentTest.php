@@ -13,8 +13,8 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
-#[CoversClass(CurlExaminer::class)]
-#[UsesClass(FOpenComponent::class)]
+#[CoversClass(CurlComponent::class)]
+#[UsesClass(FileOpenComponent::class)]
 #[UsesClass(ErrorCodeTrait::class)]
 class CurlComponentTest extends TestCase
 {
@@ -110,7 +110,7 @@ class CurlComponentTest extends TestCase
         
         $info = $sut->getInfo();
         $this->assertSame(200, $info[$sut::STATUS_CODE]);
-        $this->assertTrue(\is_file($filename));
+        $this->assertFileExists($filename);
         $this->assertSame((int) $info[$sut::CONTENT_LENGTH], (int) \filesize($filename));
         \unlink($filename);
     }
