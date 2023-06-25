@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Customizations\Composites;
+namespace App\Customizations\Components\interfaces;
 
 interface InterfaceComponent
 {

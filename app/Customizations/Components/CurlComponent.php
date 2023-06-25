@@ -3,17 +3,18 @@ declare(strict_types=1);
 
 namespace App\Customizations\Components;
 
-class CurlComponent
+use App\Customizations\Components\interfaces\InterfaceErrorCodes;
+use App\Customizations\Components\interfaces\InterfaceRemoteStreamCurl;
+use App\Customizations\Traits\ErrorCodeTrait;
+
+/**
+ * Curl Component
+ *
+ * Will return a curl result based on given options
+ */
+class CurlComponent implements InterfaceRemoteStreamCurl
 {
-    /**
-     * Options Property
-     *
-     * Set the configuration for retrieving content via curl.
-     *
-     * @access  private
-     * @var     array $options
-     */
-    private $options = [];
+    use ErrorCodeTrait;
 
     /**
      * Info Property
@@ -38,7 +39,7 @@ class CurlComponent
     /**
      * Constructor
      */
-    public function __construct(array $options = [])
+    public function __construct(private array $options = [])
     {
         $this->setOptions($options);
     }
@@ -58,40 +59,7 @@ class CurlComponent
     }
 
     /**
-     * Info Setter
-     *
-     * No required for all cases, still can provide details whether the request was a success or not
-     *
-     * @access  public
-     * @param   null|false|array info Holds information related to the given site
-     * @return  void
-     */
-    public function setInfo(mixed $info): void
-    {
-        $this->info = $info;
-    }
-
-    /**
-     * Contents Setter
-     *
-     * Contents to store via `\curl_exec`
-     *
-     * @access  public
-     * @param   mixed $contents
-     * @return  void
-     */
-    public function setContents(mixed $contents): void
-    {
-        $this->contents = $contents;
-    }
-
-    /**
-     * Info Getter
-     *
-     * Returns the set of information captured after visiting given url
-     *
-     * @access  public
-     * @return  mixed
+     * {@inheritdoc}
      */
     public function getInfo(): mixed
     {
@@ -99,12 +67,7 @@ class CurlComponent
     }
 
     /**
-     * Contents Getter
-     *
-     * Returns the contents as captured from the given source/url. In case of an error default value is false
-     *
-     * @access  public
-     * @return  mixed
+     * {@inheritdoc}
      */
     public function getContents(): mixed
     {
@@ -112,24 +75,23 @@ class CurlComponent
     }
 
     /**
-     * Run
-     *
-     * Performs all the operations for sending a request towards the given source
-     *
-     * @access  public
-     * @return  void
+     * {@inheritdoc}
      */
-    public function run(): void
+    public function execute(): bool
     {
         $ch = \curl_init();
 
         \curl_setopt_array($ch, $this->options);
-        $this->setContents(\curl_exec($ch));
+        $this->contents = \curl_exec($ch);
 
-        if($this->getContents() !== false && !\curl_errno($ch)) {
-            $this->setInfo(\curl_getinfo($ch));
+        $this->setErrorCode(\curl_errno($ch));
+        $this->setErrorCode(InterfaceErrorCodes::REMOTE_CONTENTS, $this->getContents() === false);
+
+        if($this->hasErrors() === false) {
+            $this->info = \curl_getinfo($ch);
         }
 
         \curl_close($ch);
+        return $this->hasErrors() === false;
     }
 }

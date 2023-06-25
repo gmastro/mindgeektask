@@ -5,6 +5,7 @@ namespace Tests\Unit\Customizations\Components;
 
 use App\Customizations\Components\CurlComponent;
 use App\Customizations\Components\FOpenComponent;
+use App\Customizations\Traits\ErrorCodeTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -12,9 +13,9 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
-
 #[CoversClass(CurlExaminer::class)]
 #[UsesClass(FOpenComponent::class)]
+#[UsesClass(ErrorCodeTrait::class)]
 class CurlComponentTest extends TestCase
 {
     const CURL_HEADER = [
@@ -71,16 +72,17 @@ class CurlComponentTest extends TestCase
     public function test_success_constructor_header(string $url, int $statusCode, string $contentType): void
     {
         $sut = new CurlComponent(self::CURL_HEADER + [CURLOPT_URL => $url]);
-        $sut->run();
+        $sut->execute();
         $contents = $sut->getContents();
         $this->assertNotFalse($contents);
         $this->assertIsString($contents);
         $this->assertSame("", $contents);
+        $this->assertSame(0, $sut->getErrorCode());
         
         $info = $sut->getInfo();
         $this->assertIsArray($info);
-        $this->assertSame($statusCode, (int) $info['http_code']);
-        $this->assertSame($contentType, \explode(";", $info['content_type'])[0]);
+        $this->assertSame($statusCode, (int) $info[$sut::STATUS_CODE]);
+        $this->assertSame($contentType, \explode(";", $info[$sut::CONTENT_TYPE])[0]);
     }
 
     #[Group('constructor')]
@@ -90,29 +92,26 @@ class CurlComponentTest extends TestCase
     public function test_success_constructor_get(string $url): void
     {
         $uuid = Uuid::uuid4()->toString();
-        $storage = config('filesystems.disks.downloads');
-        $filename = \sprintf("%s/%s", $storage['root'], $uuid);
+        $filename = \sprintf("%s/%s", config('filesystems.disks.downloads')['root'], $uuid);
         $out = new FOpenComponent($filename);
-
-        if($out === false) {
-            $this->assertTrue(false);
-            return;
-        }
+        $out->execute();
 
         $sut = new CurlComponent(self::CURL_GET + [
             CURLOPT_URL     => $url,
-            CURLOPT_FILE    => $out->getHandler(),
+            CURLOPT_FILE    => $out->getHandle(),
         ]);
-        $sut->run();
+        $sut->execute();
         unset($out);
+        $this->assertSame(0, $sut->getErrorCode());
+
         $contents = $sut->getContents();
         $this->assertNotEmpty($contents);
         $this->assertTrue($contents);
         
         $info = $sut->getInfo();
-        $this->assertSame(200, $info['http_code']);
+        $this->assertSame(200, $info[$sut::STATUS_CODE]);
         $this->assertTrue(\is_file($filename));
-        $this->assertSame((int) $info['download_content_length'], (int) \filesize($filename));
+        $this->assertSame((int) $info[$sut::CONTENT_LENGTH], (int) \filesize($filename));
         \unlink($filename);
     }
 
@@ -133,7 +132,8 @@ class CurlComponentTest extends TestCase
     public function test_failure_constructor_header_invalid_url(string $url): void
     {
         $sut = new CurlComponent(self::CURL_HEADER + [CURLOPT_URL => $url]);
-        $sut->run();
+        $sut->execute();
+        $this->assertGreaterThan(0, $sut->getErrorCode());
         $this->assertFalse($sut->getContents());
         $this->assertNull($sut->getInfo());
     }
