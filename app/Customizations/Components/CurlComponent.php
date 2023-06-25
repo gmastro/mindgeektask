@@ -81,6 +81,7 @@ class CurlComponent implements InterfaceRemoteStreamCurl
     {
         $ch = \curl_init();
 
+        \curl_reset($ch);
         \curl_setopt_array($ch, $this->options);
         $this->contents = \curl_exec($ch);
 
