@@ -26,7 +26,7 @@ trait FilenameTrait
      * Holds various error codes to determine cases which either information retrieval or content retrieval failed
      *
      * @access  protected
-     * @var     string|null $filename
+     * @var     string $filename
      */
     protected $filename;
 
@@ -79,7 +79,7 @@ trait FilenameTrait
     /**
      * Filename Setter
      *
-     * Stores the filename that will be used either for getting contents, or storing contents
+     * Stores the filename that will be used either for getting or storing contents
      *
      * @access  protected
      * @param   string $filename
@@ -93,7 +93,10 @@ trait FilenameTrait
     /**
      * Filename Getter
      *
-     * Returns the filename with content of interest.
+     * Returns stored filename, or null in case that nothing has been set.
+     *
+     * @access  public
+     * @return  null|string
      */
     public function getFilename(): ?string
     {

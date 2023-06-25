@@ -34,10 +34,8 @@ class CurlDownloadAdapter implements InterfaceErrorCodes
      * @param   string $disk One of the storage declared local disks.
      * @return  self
      */
-    public function __construct(
-        private InterfaceRemoteStream $remote,
-        private string $storagePath
-    ) {
+    public function __construct(private InterfaceRemoteStream $remote, string $storagePath)
+    {
         $this->setFilename(
             \is_dir($storagePath)
             ? \sprintf("%s/%s", $storagePath, $this->fromRemoteStream($remote))
@@ -56,10 +54,15 @@ class CurlDownloadAdapter implements InterfaceErrorCodes
      */
     public function isDownloaded(): bool
     {
-        $info = $this->remote->getInfo();
-        return $this->hasErrors() === false
-            && \is_file($this->getFilename()) === true
-            && ((int) \filesize($this->getFilename())) === ((int) $info[$this->remote::CONTENT_LENGTH]);
+        $filename = $this->getFilename();
+        if($this->hasErrors() || \is_file($filename) === false) {
+            return false;
+        }
+
+        $remoteFilesize = (int) $this->remote->getInfo()[$this->remote::CONTENT_LENGTH];
+        $localFilesize = (int) \filesize($filename);
+        return ($remoteFilesize === -1 && $localFilesize > 0)
+            || ($remoteFilesize === $localFilesize);
     }
 
     /**
