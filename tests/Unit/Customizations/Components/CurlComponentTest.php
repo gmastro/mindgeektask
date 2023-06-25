@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Customizations\Components;
 
 use App\Customizations\Components\CurlComponent;
-use App\Customizations\Components\FOpenComponent;
+use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Traits\ErrorCodeTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -93,7 +93,7 @@ class CurlComponentTest extends TestCase
     {
         $uuid = Uuid::uuid4()->toString();
         $filename = \sprintf("%s/%s", config('filesystems.disks.downloads')['root'], $uuid);
-        $out = new FOpenComponent($filename);
+        $out = new FileOpenComponent($filename);
         $out->execute();
 
         $sut = new CurlComponent(self::CURL_GET + [
