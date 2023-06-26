@@ -53,7 +53,7 @@ class CurlDownloadAdapterTest extends TestCase
     #[DataProvider('providerUrls')]
     public function test_success_constructor_with_curl(string $url, string $storagePath, string $expectedFilename): void
     {
-        $directory = config('filesystems.disks.downloads')['root'];
+        $directory = config('filesystems.disks.downloads.root');
         $component = $this->urlToCurlComponent($url);
 
         $sut = new CurlDownloadAdapter($component, $directory . $storagePath);

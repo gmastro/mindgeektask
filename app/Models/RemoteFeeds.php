@@ -6,6 +6,7 @@ use App\Events\RemoteFeedDeleting;
 use App\Events\RemoteFeedEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RemoteFeeds extends Model
@@ -17,17 +18,23 @@ class RemoteFeeds extends Model
         parent::boot();
         static::created(fn($model) => RemoteFeedEvent::dispatchIf(
             $model->is_active,
-            $model::withoutRelations()
+            $model->withoutRelations()
         ));
         static::deleting(fn($model) => RemoteFeedDeleting::dispatch($model::withoutRelations('pornstars')));
     }
 
     public $fillable = [
+        'downloaded_file_id',
         'source',
         'processes_handler',
         'download_handler',
         'examine_handler',
     ];
+
+    public function downloaded_files(): BelongsTo
+    {
+        return $this->belongsTo(DownloadedFiles::class, 'downloaded_file_id');
+    }
 
     public function pornstars(): HasMany
     {

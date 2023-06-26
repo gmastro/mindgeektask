@@ -9,7 +9,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 #[CoversClass(FileOpenComponent::class)]
@@ -30,7 +29,7 @@ class FileOpenComponentTest extends TestCase
     #[DataProvider('providerFilenames')]
     public function test_success_constructor_mode_write(string $filename, string $mode): void
     {
-        $directory = config("filesystems.disks.downloads")['root'];
+        $directory = config("filesystems.disks.downloads.root");
         $filename  = \sprintf("%s/%s", $directory, $filename);
 
         $sut = new FileOpenComponent($filename, $mode);
@@ -62,7 +61,7 @@ class FileOpenComponentTest extends TestCase
     #[DataProvider('providerFilenames')]
     public function test_success_destructor_mode_write(string $filename, string $mode): void
     {
-        $directory = config("filesystems.disks.downloads")['root'];
+        $directory = config("filesystems.disks.downloads.root");
         $filename  = \sprintf("%s/%s", $directory, $filename);
 
         $sut = new FileOpenComponent($filename, $mode);
@@ -83,7 +82,7 @@ class FileOpenComponentTest extends TestCase
     #[Group('failure')]
     public function test_failure_constructor_filename_is_directory(): void
     {
-        $filename = config("filesystems.disks.downloads")['root'];
+        $filename = config("filesystems.disks.downloads.root");
 
         $sut = new FileOpenComponent($filename);
         $sut->execute();
@@ -115,7 +114,7 @@ class FileOpenComponentTest extends TestCase
     #[DataProvider('providerFilenames')]
     public function test_success_set_filename_write_mode(string $filename, string $mode): void
     {
-        $directory = config("filesystems.disks.downloads")['root'];
+        $directory = config("filesystems.disks.downloads.root");
         $filename  = \sprintf("%s/%s", $directory, $filename);
 
         $sut = new FileOpenComponent(null, $mode);

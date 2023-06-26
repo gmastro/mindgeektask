@@ -92,7 +92,7 @@ class CurlComponentTest extends TestCase
     public function test_success_constructor_get(string $url): void
     {
         $uuid = Uuid::uuid4()->toString();
-        $filename = \sprintf("%s/%s", config('filesystems.disks.downloads')['root'], $uuid);
+        $filename = \sprintf("%s/%s", config('filesystems.disks.downloads.root'), $uuid);
         $out = new FileOpenComponent($filename);
         $out->execute();
 
