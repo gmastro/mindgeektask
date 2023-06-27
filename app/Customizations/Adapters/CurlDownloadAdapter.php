@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Customizations\Adapters;
 
+use App\Customizations\Adapters\interfaces\InterfaceAdapter;
 use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Components\interfaces\InterfaceErrorCodes;
 use App\Customizations\Components\interfaces\InterfaceRemoteStream;
@@ -17,7 +18,7 @@ use App\Customizations\Traits\FilenameTrait;
  * The content will be stored into a file, within selected container.
  * This operation if for local storage only.
  */
-class CurlDownloadAdapter implements InterfaceErrorCodes
+class CurlDownloadAdapter implements InterfaceAdapter, InterfaceErrorCodes
 {
     use ErrorCodeTrait;
     use FilenameTrait;

@@ -17,9 +17,10 @@ class DownloadedFilesFactory extends Factory
      */
     public function definition(): array
     {
+        $config   = config('filesystems.disks');
         $filename = \implode(".", [fake()->word(), fake()->fileExtension()]);
-        $disk     = fake()->randomElement(\array_keys(config('filesystem.disks')));
-        $hash     = \md5(\implode("/", [config('filesystem.disks')[$disk]['root'], $filename]));
+        $disk     = fake()->randomElement(\array_keys($config));
+        $hash     = \md5(\implode("/", [$config[$disk]['root'], $filename]));
         return [
             'filesize'      => fake()->numberBetween(),
             'filename'      => $filename,
