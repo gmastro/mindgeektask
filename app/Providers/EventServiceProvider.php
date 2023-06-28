@@ -3,8 +3,14 @@
 namespace App\Providers;
 
 use App\Events\ChirpCreated;
+use App\Events\DownloadEvent;
+use App\Events\ExamineEvent;
+use App\Events\RedisCacheEvent;
 use App\Events\RemoteFeedDeleting;
 use App\Events\RemoteFeedEvent;
+use App\Listeners\DownloadListener;
+use App\Listeners\ExamineListener;
+use App\Listeners\RedisCacheListener;
 use App\Listeners\RemoteFeedCleanupListener;
 use App\Listeners\RemoteFeedListener;
 use App\Listeners\SendChirpCreatedNotifications;
@@ -20,18 +26,29 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        // remove
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
         ChirpCreated::class => [
             SendChirpCreatedNotifications::class,
         ],
+        // some old events, still need to reconsider and put them in subscription instead?
+        // some experemintation is still required
         RemoteFeedDeleting::class => [
             RemoteFeedCleanupListener::class,
         ],
         RemoteFeedEvent::class => [
             RemoteFeedListener::class,
+        ],
+        // and do your stuff from here
+        ExamineEvent::class     => [
+            ExamineListener::class
+        ],
+        DownloadEvent::class    => [
+            DownloadListener::class,
+        ],
+        RedisCacheEvent::class  => [
+            RedisCacheListener::class,
         ],
     ];
 

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,11 +20,15 @@ class DownloadedFiles extends Model
         // use config to make this dynamic and get $this->app->isProduction() === false
         Model::preventSilentlyDiscardingAttributes();
 
-        $md5Hash = function(DownloadedFiles $model) {
-            $model->md5_hash = \md5(\implode(
-                '/',
-                [config('filesystems.disks')[$model->disk]['root'], $model->filename]
-            ));
+        $md5Hash = function(DownloadedFiles $model): void {
+            $filename = \implode('/',[config('filesystems.disks')[$model->disk]['root'], $model->filename]);
+            $model->md5_hash = \md5($filename);
+            $model->filesize = (int) \filesize($filename);
+
+            if($model->filesize === 0) {
+                $model->deleted_at = Carbon::now();
+                $model->is_cached = false;
+            }
         };
 
         static::creating($md5Hash);
@@ -31,7 +36,6 @@ class DownloadedFiles extends Model
     }
 
     protected $fillable = [
-        'filesize',
         'filename',
         'disk',
         'mime_type',

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class RemoteFeeds extends Model
 {
@@ -32,9 +33,14 @@ class RemoteFeeds extends Model
         'examine_handler',
     ];
 
-    public function downloaded_files(): BelongsTo
+    public function downloaded(): BelongsTo
     {
         return $this->belongsTo(DownloadedFiles::class, 'downloaded_file_id');
+    }
+
+    public function downloaded_files(): HasManyThrough
+    {
+        return $this->hasManyThrough(DownloadedFiles::class, Thumbnails::class);
     }
 
     public function pornstars(): HasMany

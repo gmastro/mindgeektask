@@ -80,7 +80,7 @@ trait ErrorCodeTrait
      * Will return an error code to determine cases that something might have gone wrong
      *
      * @access  public
-     * @return  int
+     * @return  array
      */
     public function getErrorBatch(): array
     {

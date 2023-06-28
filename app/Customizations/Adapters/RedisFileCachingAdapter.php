@@ -10,7 +10,20 @@ use Redis;
 
 class RedisFileCachingAdapter implements InterfaceAdapter
 {
-    public function __construct(public Redis $pipe, private Collection $collection)
+    /**
+     * Magic Construct
+     *
+     * Uses redis pipeline and a `hard-dependency` of downloaded files collection
+     * Depending upon conditions per downloaded file such as
+     * - is_cached
+     * - soft delete
+     * The content of the file will be cached or be removed.
+     *
+     * @access  public
+     * @param   mixed|Redis $pipe Pipeline generated via {@see Illuminate\Support\Facades\Redis}
+     * @param   Collection<int, DownloadedFiles> $collection Files to cache/uncache via redis
+     */
+    public function __construct(public $pipe, private Collection $collection)
     {
         //
     }
@@ -19,12 +32,13 @@ class RedisFileCachingAdapter implements InterfaceAdapter
      * Cache
      *
      * Will place a file into redis through redis pipe
+     * > **Note**:  Each response will return `Redis` instance, which is currently undefined via data-type hint
      *
      * @access  private
      * @param   DownloadedFiles $model Current model through collection iterator
-     * @return  Redis
+     * @return  mixed
      */
-    private function cache(DownloadedFiles $model): Redis
+    private function cache(DownloadedFiles $model)
     {
         $filename = \implode("/", [config("filesystems.disks")[$model->disk]['root'], $model->filename]);
 
@@ -39,12 +53,13 @@ class RedisFileCachingAdapter implements InterfaceAdapter
      * Unlink
      *
      * Removes file from redis cache, either the image is soft deleted and/or is not cached.
+     * > **Note**:  Each response will return `Redis` instance, which is currently undefined via data-type hint
      *
      * @access  public
      * @param   array $paths Batch of keys to remove
-     * @return  Redis
+     * @return  mixed
      */
-    private function unlink(DownloadedFiles $model): Redis
+    private function unlink(DownloadedFiles $model)
     {
         return $this->pipe->del("key:$model->md5_hash");
     }
