@@ -23,7 +23,9 @@ class DownloadedFiles extends Model
         $md5Hash = function(DownloadedFiles $model): void {
             $filename = \implode('/',[config('filesystems.disks')[$model->disk]['root'], $model->filename]);
             $model->md5_hash = \md5($filename);
-            $model->filesize = (int) \filesize($filename);
+            $model->filesize = \is_file($filename)
+                ? (int) \filesize($filename)
+                : 0;
 
             if($model->filesize === 0) {
                 $model->deleted_at = Carbon::now();

@@ -28,14 +28,16 @@ class DownloadedFilesTest extends TestCase
         DownloadedFiles::create([
             'filename'  => "Screenshot1.png",
             'disk'      => "thumbnails",
-            'filesize'  => 12345,
             'mime_type' => 'images/png',
             'is_cached' => true,
         ]);
         $this->assertDatabaseCount('downloaded_files', 1);
+
+        $model = DownloadedFiles::where(['filename' => "Screenshot1.png", 'disk' => 'thumbnails'])->get();
         $this->assertSame(
             \md5(\implode('/', [config("filesystems.disks.thumbnails.root"), "Screenshot1.png"])),
-            DownloadedFiles::find(6)->md5_hash
+            $model->md5_hash
         );
+        $this->assertGreaterThan(0, $model->filesize);
     }
 }

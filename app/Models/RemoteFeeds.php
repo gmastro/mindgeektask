@@ -22,15 +22,15 @@ class RemoteFeeds extends Model
             $model->is_active,
             $model->withoutRelations()
         ));
-        static::deleting(fn($model) => RemoteFeedDeleting::dispatch($model::withoutRelations('pornstars')));
+        static::deleting(fn($model) => RemoteFeedDeleting::dispatch(
+            $model::withoutRelations('pornstars')
+        ));
     }
 
     public $fillable = [
         'downloaded_file_id',
         'source',
-        'processes_handler',
-        'download_handler',
-        'examine_handler',
+        'handle',
     ];
 
     public function downloaded(): BelongsTo
