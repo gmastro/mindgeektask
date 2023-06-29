@@ -18,9 +18,7 @@ class ExamineEvent
      * @param   string $source Location to examine via curl
      * @param   null|string $disk **Default `null`**, location to store content if it is to be dowloaded
      */
-    public function __construct(
-        public string $source,
-        public ?string $disk = null)
+    public function __construct(public string $source, public ?string $disk = null)
     {
         //
     }

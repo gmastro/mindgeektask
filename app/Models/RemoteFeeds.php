@@ -40,7 +40,7 @@ class RemoteFeeds extends Model
 
     public function downloaded_files(): HasManyThrough
     {
-        return $this->hasManyThrough(DownloadedFiles::class, Thumbnails::class);
+        return $this->hasManyThrough(DownloadedFiles::class, Thumbnails::class, 'id', 'id', 'downloaded_file_id', 'thumbnail_id');
     }
 
     public function pornstars(): HasMany

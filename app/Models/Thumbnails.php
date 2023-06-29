@@ -20,7 +20,7 @@ class Thumbnails extends Model
 
     public function remoteFeeds(): BelongsTo
     {
-        return $this->belongsTo(RemoteFeeds::class);
+        return $this->belongsTo(RemoteFeeds::class, 'id', 'remote_feed_id');
     }
 
     public function pornstars(): BelongsToMany
