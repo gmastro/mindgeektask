@@ -94,7 +94,7 @@ trait ShareTrait
      */
     protected function has(string $key): bool
     {
-        return \property_exists($this->acquired, $key);
+        return $this->acquired !== null && \property_exists($this->acquired, $key);
     }
 
     /**
