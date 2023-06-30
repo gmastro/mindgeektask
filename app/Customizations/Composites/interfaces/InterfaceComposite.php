@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Customizations\Composites\interfaces;
 
-interface InterfaceComposite
+use App\Customizations\Components\interfaces\InterfaceComponent;
+
+interface InterfaceComposite extends InterfaceComponent
 {
-    public function execute(): bool;
+    // nothing here
 }
