@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\DownloadedFiles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class DownloadedFilesFactory extends Factory
 {
+    protected $model = DownloadedFiles::class;
+
     /**
      * Define the model's default state.
      *

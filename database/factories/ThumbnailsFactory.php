@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\DownloadedFiles;
 use App\Models\RemoteFeeds;
 use App\Models\Thumbnails;
 use Carbon\Carbon;
@@ -23,7 +24,7 @@ class ThumbnailsFactory extends Factory
     {
         return [
             'remote_feed_id'        => RemoteFeeds::factory(),
-            'downloaded_file_id'    => null,
+            'downloaded_file_id'    => DownloadedFiles::factory(),
             'url'                   => fake()->unique()->url(),
             'width'                 => fake()->randomNumber(3),
             'height'                => fake()->randomNumber(3),

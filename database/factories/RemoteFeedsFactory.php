@@ -3,10 +3,6 @@
 namespace Database\Factories;
 
 use App\Customizations\Composites\PornstarsComponent;
-use App\Customizations\Factories\CurlDownload;
-use App\Customizations\Factories\CurlExaminer;
-use App\Customizations\Factories\FileGetContentsDownload;
-use App\Customizations\Factories\GetHeadersExaminer;
 use App\Models\DownloadedFiles;
 use App\Models\RemoteFeeds;
 use Carbon\Carbon;
@@ -33,9 +29,6 @@ class RemoteFeedsFactory extends Factory
             'examine_counter'   => fake()->randomNumber(5),
             'download_counter'  => fake()->randomNumber(3),
             'handle'            => fake()->randomElement([PornstarsComponent::class, Carbon::class]),
-            // 'process_handler'   => fake()->randomElement([PornstarsComponent::class, Carbon::class]),
-            // 'examine_handler'   => fake()->randomElement([CurlExaminer::class, GetHeadersExaminer::class]),
-            // 'download_handler'  => fake()->randomElement([CurlDownload::class, FileGetContentsDownload::class]),
             'created_at'        => Carbon::now(),
             'updated_at'        => Carbon::now(),
         ];
