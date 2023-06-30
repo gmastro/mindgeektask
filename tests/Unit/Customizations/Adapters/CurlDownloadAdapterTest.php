@@ -8,6 +8,7 @@ use App\Customizations\Components\CurlComponent;
 use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Traits\ErrorCodeTrait;
 use App\Customizations\Traits\FilenameTrait;
+use ErrorException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -69,5 +70,16 @@ class CurlDownloadAdapterTest extends TestCase
         $this->assertStringNotEqualsFileIgnoringCase($filename, "");
 
         \unlink($filename);
+        $this->assertFalse($sut->isDownloaded());
+    }
+
+    #[Group('constructor')]
+    #[Group('failure')]
+    public function test_failure_fileopen(): void
+    {
+        $component = $this->urlToCurlComponent("https://example.com");
+
+        $sut = new CurlDownloadAdapter($component, "/moufa.html");
+        $this->assertFalse($sut->execute());
     }
 }

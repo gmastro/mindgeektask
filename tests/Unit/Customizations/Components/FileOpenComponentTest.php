@@ -127,4 +127,17 @@ class FileOpenComponentTest extends TestCase
 
         unlink($filename);
     }
+
+    #[Group('failure')]
+    #[Group('write')]
+    public function test_failure_permission_denied(): void
+    {
+        $filename = "/root-fail.danger";
+        $sut = new FileOpenComponent($filename);
+        $this->assertFalse($sut->execute());
+        $this->assertFileDoesNotExist($filename);
+        $this->assertTrue($sut->hasErrors());
+        $this->assertSame($sut::FILE_OPEN, $sut->getErrorCode());
+        unset($sut);
+    }
 }

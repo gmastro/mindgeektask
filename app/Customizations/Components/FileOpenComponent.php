@@ -7,6 +7,8 @@ namespace App\Customizations\Components;
 use App\Customizations\Components\interfaces\InterfaceErrorCodes;
 use App\Customizations\Components\interfaces\InterfaceStorage;
 use App\Customizations\Traits\ErrorCodeTrait;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Opens file onto
@@ -112,8 +114,16 @@ class FileOpenComponent implements InterfaceStorage
             return false;
         }
 
-        $this->handle = \fopen($this->filename, $this->mode);
-        $this->setErrorCode(InterfaceErrorCodes::FILE_OPEN, \is_resource($this->handle) === false);
+        try {
+            $this->handle = \fopen($this->filename, $this->mode);
+            $this->setErrorCode(InterfaceErrorCodes::FILE_OPEN, \is_resource($this->handle) === false);
+        } catch (Throwable $e) {
+            $this->setErrorCode(InterfaceErrorCodes::FILE_OPEN);
+            Log::critical($e->getMessage(), [
+                'filename'  => $this->filename,
+                'mode'      => $this->mode,
+            ]);
+        }
         return $this->hasErrors() === false;
     }
 }
