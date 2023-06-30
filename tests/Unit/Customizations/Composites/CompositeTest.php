@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Customizations\Composites;
@@ -51,11 +52,16 @@ class CompositeTest extends TestCase
 
     private static function generateChild(bool $willReturn = true, ?object $data = null): InterfaceShare
     {
-        return new class($willReturn, $data) implements InterfaceShare {
+        return new class ($willReturn, $data) implements InterfaceShare {
             use ShareTrait;
-            public function __construct(private bool $response, private ?object $data = null) {}
-            public function execute(): bool {
-                if($this->has('data') || $this->data !== null) {
+            public $uuid;
+            public function __construct(private bool $response, private ?object $data = null)
+            {
+                $this->uuid = fake()->uuid();
+            }
+            public function execute(): bool
+            {
+                if ($this->has('data') || $this->data !== null) {
                     $this->set('data', $this->has('data') ? ++$this->acquired->data : ++$this->data->data);
                 }
                 return $this->response;
@@ -95,7 +101,7 @@ class CompositeTest extends TestCase
 
     public static function providerChildren(): array
     {
-        $map = fn(int $i, ?object $data = null) => \array_map(fn() => self::generateChild(true, $data), range(1, $i));
+        $map = fn (int $i, ?object $data = null) => \array_map(fn () => self::generateChild(true, $data), range(1, $i));
         return [
             'children-no-data'      => [collect($map(5)), null, null],
             'children-init-data'    => [collect($map(5)), (object) ['data' => 42], 47],
@@ -147,7 +153,7 @@ class CompositeTest extends TestCase
 
     public static function providerChildrenFail(): array
     {
-        $map = fn(int $i, ?object $data = null) => \array_map(fn($index) => self::generateChild($index !== 4, $data), range(1, $i));
+        $map = fn (int $i, ?object $data = null) => \array_map(fn ($index) => self::generateChild($index !== 4, $data), range(1, $i));
         return [
             'children-no-data'      => [collect($map(5)), null, null],
             'children-init-data'    => [collect($map(5)), (object) ['data' => 42], 46],
@@ -215,5 +221,25 @@ class CompositeTest extends TestCase
         $property->setAccessible(true);
         $property->setValue($sut, 'foobar');
         $sut->execute();
+    }
+
+    #[Group('success')]
+    #[Group('shift')]
+    #[Group('pop')]
+    public function test_success_shift_pop(): void
+    {
+        $collection = self::providerChildrenFail()['children-inner-data'][0];
+        $sut = new Composite($collection);
+        $this->assertSame(5, $sut->getChildren()->count());
+
+        $sut->shift();
+        $shifted = $sut->getCurrent();
+        $this->assertSame(4, $sut->getChildren()->count());
+
+        $sut->pop();
+        $poped = $sut->getCurrent();
+        $this->assertSame(3, $sut->getChildren()->count());
+
+        $this->assertNotSame($shifted->uuid, $poped->uuid);
     }
 }
