@@ -13,6 +13,12 @@ class Pornstars extends Model
 
     public $increment = false;
 
+    protected static function boot()
+    {
+        parent::boot();
+        Model::preventSilentlyDiscardingAttributes();
+    }
+
     public $fillable = [
         'id',
         'name',
