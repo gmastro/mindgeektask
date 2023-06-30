@@ -3,17 +3,23 @@
 namespace App\Customizations\Composites;
 
 use App\Customizations\Adapters\RedisStorageAdapter;
+use App\Customizations\Composites\interfaces\InterfaceShare;
 use App\Customizations\Factories\CurlDownload;
+use App\Customizations\Traits\ShareTrait;
 use App\Models\Pornstars;
 use App\Models\PornstarsThumbnails;
 use App\Models\RemoteFeeds;
 use App\Models\Thumbnails;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
-class PornstarsComponent implements InterfaceComponent
+class PornstarsComponent implements InterfaceShare
 {
+    use ShareTrait;
+
     private $map = [
         Pornstars::class            => [],
         Thumbnails::class           => [],
@@ -26,16 +32,6 @@ class PornstarsComponent implements InterfaceComponent
     ];
 
     /**
-     * Magic Constructor
-     *
-     * Given feed model contains all information
-     */
-    public function __construct(public RemoteFeeds $feed, public string $disk = 'downloads')
-    {
-        //
-    }
-
-    /**
      * Process Json
      *
      * Performing iterations per each and every item of the retrieved list and creating batches, used to
@@ -44,45 +40,39 @@ class PornstarsComponent implements InterfaceComponent
      * @access  private
      * @return  bool
      */
-    private function processJson(): bool
+    private function processJson(): void
     {
-        $returnFlag = true;
+        $downloadedFiles = $this->acquired->model->downloaded()->first();
+        $filename = \implode("/", [config("filesystems.disks")[$downloadedFiles->disk]['root'], $downloadedFiles->filename]);
+        $json = \json_decode(\file_get_contents($filename));
 
-        try {
-            $json = \json_decode(Storage::disk($this->disk)->get(\md5($this->feed->source)));
-
-            foreach($json->items as $item) {
-                $thumbs = [];
-                foreach($item->thumbnails as $thumbnail) {
-                    $this->map[PornstarsThumbnails::class][$thumbnail->url] = [
-                        'pornstar_id'   => $item->id,
-                        'thumbnail_id'  => ''
-                    ];
-                    $thumbs[$thumbnail->url]['url']             = $thumbnail->url;
-                    $thumbs[$thumbnail->url]['remote_feed_id']  = $this->feed->id;
-                    $thumbs[$thumbnail->url]['width']           = $thumbnail->width;
-                    $thumbs[$thumbnail->url]['height']          = $thumbnail->height;
-                    $thumbs[$thumbnail->url]['media'][]         = $thumbnail->type;
-                }
-
-                $this->map[Thumbnails::class] += $thumbs;
-                $this->map[Pornstars::class][$item->id] = [
-                    'id'            => $item->id,
-                    'remote_feed_id'=> $this->feed->id,
-                    'name'          => $item->name,
-                    'link'          => $item->link,
-                    'license'       => $item->license,
-                    'wl_status'     => (bool) $item->wlStatus,
-                    'attributes'    => $item->attributes,
-                    'stats'         => $item->attributes->stats ?? (object) [],
-                    'aliases'       => $item->aliases ?? [],
+        foreach ($json->items as $item) {
+            $thumbs = [];
+            foreach ($item->thumbnails as $thumbnail) {
+                $this->map[PornstarsThumbnails::class][$thumbnail->url] = [
+                    'pornstar_id'   => $item->id,
+                    'thumbnail_id'  => ''
                 ];
+                $thumbs[$thumbnail->url]['url']             = $thumbnail->url;
+                $thumbs[$thumbnail->url]['remote_feed_id']  = $this->acquired->model->id;
+                $thumbs[$thumbnail->url]['width']           = $thumbnail->width;
+                $thumbs[$thumbnail->url]['height']          = $thumbnail->height;
+                $thumbs[$thumbnail->url]['media'][]         = $thumbnail->type;
             }
-        } catch(\Throwable $e) {
-            $returnFlag = false;
-        }
 
-        return $returnFlag;
+            $this->map[Thumbnails::class] += $thumbs;
+            $this->map[Pornstars::class][$item->id] = [
+                'id'            => $item->id,
+                'remote_feed_id'=> $this->acquired->model->id,
+                'name'          => $item->name,
+                'link'          => $item->link,
+                'license'       => $item->license,
+                'wl_status'     => (bool) $item->wlStatus,
+                'attributes'    => $item->attributes,
+                'stats'         => $item->attributes->stats ?? (object) [],
+                'aliases'       => $item->aliases ?? [],
+            ];
+        }
     }
 
     /**
@@ -98,11 +88,11 @@ class PornstarsComponent implements InterfaceComponent
      */
     private function delete(): void
     {
-        $keys = $this->feed->pornstars->diffKeys(['id' => $this->map[Pornstars::class]])->keys()->toArray();
+        $keys = $this->acquired->model->pornstars->diffKeys(['id' => $this->map[Pornstars::class]])->keys()->toArray();
         Pornstars::where('id', $keys)->delete();
         $this->keys['delete'][Pornstars::class] = $keys;
 
-        $keys = $this->feed->thumbnails->diffKeys(['url' => $this->map[Thumbnails::class]])->keys()->toArray();
+        $keys = $this->acquired->model->thumbnails->diffKeys(['url' => $this->map[Thumbnails::class]])->keys()->toArray();
         Thumbnails::where('url', $keys)->delete();
         $this->keys['delete'][Thumbnails::class] = $keys;
     }
@@ -142,7 +132,7 @@ class PornstarsComponent implements InterfaceComponent
      */
     private function create(): void
     {
-        foreach($this->feed->thumbnails->get(['id', 'url']) as $item) {
+        foreach ($this->acquired->model->thumbnails()->get(['id', 'url']) as $item) {
             $this->map[PornstarsThumbnails::class][$item->url]['thumbnail_id'] = $item->id;
         }
 
@@ -170,33 +160,50 @@ class PornstarsComponent implements InterfaceComponent
      */
     public function execute(): bool
     {
-        if(($returnFlag = $this->processJson()) === true) {
-            DB::transaction($this->delete(), 3);
-            DB::transaction($this->upsert(), 3);
-            DB::transaction($this->create(), 3);
+        $this->processJson();
+
+        try {
+            DB::beginTransaction();
+            $this->delete();
+            $this->upsert();
+            $this->create();
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Failed to upsert DownloadedFiles and/or create association", [
+                'message'  => $e->getMessage(),
+                'acquired' => $this->acquired
+            ]);
+            return false;
         }
-        
-        $deletedKeys = $this->keys['delete'][Thumbnails::class];
-        $feedId = $this->feed->id;
-        
-        Redis::pipeline(function(Redis $pipe) use ($feedId, $deletedKeys) {
-            $redisStorage = new RedisStorageAdapter($pipe);
 
-            // remove old thumbnails
-            $paths = \array_map(fn($thumb) => \md5($thumb), $deletedKeys);
-            $redisStorage->unlink($paths);
-            $disk = Storage::disk('thumbnails');
-            $disk->delete($paths);
+        $this->transfer('model')->append([
+            'keys'  => $this->keys['delete'][Thumbnails::class],
+            'disk'  => 'thumbnails',
+        ]);
 
-            // add/refresh thumbnails
-            $thumbs = Thumbnails::select('url')::all();
-            foreach ($thumbs as $t) {
-                $source = $t->url;
-                $redisStorage->setDownload(new CurlDownload($source, $disk));
-                $redisStorage->store($source);
-            }
-        });
+        return true;
+        // $deletedKeys = $this->keys['delete'][Thumbnails::class];
+        // $feedId = $this->feed->id;
 
-        return $returnFlag;
+        // Redis::pipeline(function(Redis $pipe) use ($feedId, $deletedKeys) {
+        //     $redisStorage = new RedisStorageAdapter($pipe);
+
+        //     // remove old thumbnails
+        //     $paths = \array_map(fn($thumb) => \md5($thumb), $deletedKeys);
+        //     $redisStorage->unlink($paths);
+        //     $disk = Storage::disk('thumbnails');
+        //     $disk->delete($paths);
+
+        //     // add/refresh thumbnails
+        //     $thumbs = Thumbnails::select('url')::all();
+        //     foreach ($thumbs as $t) {
+        //         $source = $t->url;
+        //         $redisStorage->setDownload(new CurlDownload($source, $disk));
+        //         $redisStorage->store($source);
+        //     }
+        // });
+
+        // return $returnFlag;
     }
 }

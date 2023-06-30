@@ -51,9 +51,9 @@ trait ErrorCodeTrait
      */
     protected function setErrorCode(int $errorCode, bool $condition = true): bool
     {
-        if($condition === true) {
+        if ($condition === true) {
             $this->errorCode = $errorCode;
-            if($errorCode !== 0) {
+            if ($errorCode !== 0) {
                 $this->errorBatch[$errorCode] = null;
             }
         }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Adapters;
@@ -27,7 +28,7 @@ class RedisFileCachingAdapter implements InterfaceAdapter
     {
         //
     }
-    
+
     /**
      * Cache
      *
@@ -42,7 +43,7 @@ class RedisFileCachingAdapter implements InterfaceAdapter
     {
         $filename = \implode("/", [config("filesystems.disks")[$model->disk]['root'], $model->filename]);
 
-        if(\is_file($filename) === false) {
+        if (\is_file($filename) === false) {
             return false;
         }
 
@@ -69,7 +70,8 @@ class RedisFileCachingAdapter implements InterfaceAdapter
      */
     public function execute(): bool
     {
-        $this->collection->map(fn(DownloadedFiles $model) => $model->is_cached && $model->deleted_at === null
+        $this->collection->map(
+            fn (DownloadedFiles $model) => $model->is_cached && $model->deleted_at === null
             ? $this->cache($model)
             : $this->unlink($model)
         );

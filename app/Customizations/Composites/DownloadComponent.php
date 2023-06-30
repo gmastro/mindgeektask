@@ -1,51 +1,56 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Composites;
 
-use App\Customizations\Factories\CurlDownload;
-use App\Customizations\Factories\FileGetContentsDownload;
-use App\Models\RemoteFeeds;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use App\Customizations\Adapters\CurlDownloadAdapter;
+use App\Customizations\Composites\interfaces\InterfaceShare;
+use App\Customizations\Traits\ShareTrait;
+use DomainException;
+use RuntimeException;
 
-class DownloadComponent implements InterfaceComponent
+/**
+ * Performs Download
+ *
+ * Right after a source is examined it downloads and stores the content
+ * For any failure either during download or storage it will throw an exception
+ * Once the file is created it will return filename, mime-type and fullpath.
+ */
+class DownloadComponent implements InterfaceShare
 {
-    private $storage;
-
-    /**
-     * Magic Constructor
-     *
-     * Instanciate the dowload class to transfer required content within local the filesystem.
-     * You may defined an alternative filesystem to store this file.
-     *
-     * @access  public
-     * @param   RemoteFeeds $feed
-     * @param   string $diskName Filesystem name to use
-     */
-    public function __construct(public RemoteFeeds $feed, string $diskName = 'downloads')
-    {
-        $this->storage = match($feed->download_handler) {
-            CurlDownload::class             => new CurlDownload($feed->source, Storage::disk($diskName)),
-            FileGetContentsDownload::class  => new FileGetContentsDownload($feed->source, Storage::disk($diskName)),
-            // your other handlers,
-            default                         => throw new \UnhandledMatchError("unkown dowload handler"),
-        };
-    }
+    use ShareTrait;
 
     /**
      * {@inheritdoc}
      */
     public function execute(): bool
     {
-        $this->storage->unlink();
-        $this->storage->download();
-        if($this->storage->exists() === false) {
-            return false;
+        $path = config('filesystems.disks')[$this->acquired->disk]['root'] ?? null;
+
+        if ($path === null) {
+            throw new RuntimeException("Unknown disk: `$this->acquired->disk`. Please check config/filesystems.php file");
         }
 
-        return DB::transaction(fn(): bool => $this->feed->save([
-            'download_counter' => $this->feed->download_counter + 1
-        ]));
+        $download = new CurlDownloadAdapter($this->acquired->examine, $path);
+        $response = $download->execute();
+
+        if ($response === false) {
+            throw new DomainException(\strtr("Terminated with the following errors: {errorCodes}", [
+                '{errorCodes}' => \implode(", ", \array_keys($download->getErrorBatch()))
+            ]));
+        }
+
+        $filename = \explode('/', $download->getFilename());
+        $this
+            ->transfer('model')
+            ->append([
+                'mime_type' => $this->acquired->examine->getInfo()[$this->acquired->examine::CONTENT_TYPE],
+                'disk'      => $this->acquired->disk,
+                'fullpath'  => $filename,
+                'filename'  => \end($filename),
+            ]);
+
+        return $response;
     }
 }

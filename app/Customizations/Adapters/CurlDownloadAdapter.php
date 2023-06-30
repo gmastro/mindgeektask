@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Adapters;
@@ -56,7 +57,7 @@ class CurlDownloadAdapter implements InterfaceAdapter, InterfaceErrorCodes
     public function isDownloaded(): bool
     {
         $filename = $this->getFilename();
-        if($this->hasErrors() || \is_file($filename) === false) {
+        if ($this->hasErrors() || \is_file($filename) === false) {
             return false;
         }
 
@@ -73,7 +74,7 @@ class CurlDownloadAdapter implements InterfaceAdapter, InterfaceErrorCodes
     {
         $out = new FileOpenComponent($this->getFilename());
         $out->execute();
-        if($this->setErrorCode($out->getErrorCode(), $out->hasErrors())) {
+        if ($this->setErrorCode($out->getErrorCode(), $out->hasErrors())) {
             return false;
         }
 

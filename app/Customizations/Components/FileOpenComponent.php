@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Components;
@@ -89,12 +90,12 @@ class FileOpenComponent implements InterfaceStorage
      */
     public function close(): void
     {
-        if(\is_resource($this->handle) === false) {
+        if (\is_resource($this->handle) === false) {
             return;
         }
 
         $this->setErrorCode(InterfaceErrorCodes::FILE_CLOSE, \fclose($this->handle) === false);
-        if($this->hasErrors() === false && $this->filename !== null) {
+        if ($this->hasErrors() === false && $this->filename !== null) {
             \touch($this->filename);
         }
     }
@@ -107,7 +108,7 @@ class FileOpenComponent implements InterfaceStorage
     {
         $this->setErrorCode(InterfaceErrorCodes::FILE_PATH, $this->filename === null);
         $this->setErrorCode(InterfaceErrorCodes::DIRECTORY_PATH, $this->filename !== null && \is_dir($this->filename));
-        if($this->hasErrors()) {
+        if ($this->hasErrors()) {
             return false;
         }
 

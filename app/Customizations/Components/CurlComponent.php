@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Components;
@@ -88,7 +89,7 @@ class CurlComponent implements InterfaceRemoteStreamCurl
         $this->setErrorCode(\curl_errno($ch));
         $this->setErrorCode(InterfaceErrorCodes::REMOTE_CONTENTS, $this->getContents() === false);
 
-        if($this->hasErrors() === false) {
+        if ($this->hasErrors() === false) {
             $this->info = \curl_getinfo($ch);
         }
 

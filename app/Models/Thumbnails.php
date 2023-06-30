@@ -18,6 +18,11 @@ class Thumbnails extends Model
         'media',
     ];
 
+    public function downloaded(): BelongsTo
+    {
+        return $this->belongsTo(DownloadedFiles::class, 'downloaded_file_id');
+    }
+
     public function remoteFeeds(): BelongsTo
     {
         return $this->belongsTo(RemoteFeeds::class, 'id', 'remote_feed_id');

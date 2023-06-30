@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Adapters;
@@ -17,7 +18,7 @@ class RedisStorageAdapter implements InterfaceStorage
     {
         //
     }
-    
+
     public function setDownload(InterfaceDownload $download): void
     {
         $this->download = $download;
@@ -38,7 +39,7 @@ class RedisStorageAdapter implements InterfaceStorage
         } else {
             $contents = \file_get_contents($this->download->disk->get($key));
         }
-        
+
         return $this->pipe::set("key:$key", $contents);
     }
 
@@ -54,6 +55,6 @@ class RedisStorageAdapter implements InterfaceStorage
      */
     public function unlink(array $paths): void
     {
-        \array_map(fn($key) => $this->pipe::del("key:$key"), $paths);
+        \array_map(fn ($key) => $this->pipe::del("key:$key"), $paths);
     }
 }

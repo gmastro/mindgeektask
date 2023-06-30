@@ -47,7 +47,7 @@ trait FilenameTrait
         $info = $stream->getInfo();
         $contentType = \explode(';', $info[$stream::CONTENT_TYPE])[0];
 
-        $extension = match($contentType) {
+        $extension = match ($contentType) {
             'application/json'          => 'json',
             'text/xml'                  => 'xml',
             'text/html'                 => 'html',
@@ -63,13 +63,13 @@ trait FilenameTrait
         $filename = \explode('/', \parse_url($info[$stream::URL], PHP_URL_PATH));
         $filename = \end($filename);
 
-        if(empty($filename)) {
+        if (empty($filename)) {
             return \sprintf("%s.%s", \md5($info[$stream::URL]), $extension);
         }
 
         $pattern = \sprintf("/\.%s$/", $extension);
         \preg_match($pattern, $filename, $matches);
-        if($matches === []) {
+        if ($matches === []) {
             return \sprintf("%s.%s", $filename, $extension);
         }
 

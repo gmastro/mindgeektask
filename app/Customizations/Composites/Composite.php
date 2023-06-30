@@ -3,25 +3,18 @@
 namespace App\Customizations\Composites;
 
 use App\Customizations\Components\interfaces\InterfaceComponent;
+use App\Customizations\Composites\interfaces\InterfaceShare;
 use Illuminate\Support\Collection;
 
-class RemoteFeedComposite implements InterfaceComponent
+class Composite implements InterfaceComponent
 {
     /**
-     * Children Property
+     * Magic Construct
      *
-     * All component instances required to be be performed sequencially
-     *
-     * @access  private
-     * @var     Collection<int, InterfaceComponent> $children
+     * Starts with a collection of all those classes required to run in sequence and with some shared
+     * resources
      */
-    private $children;
-
-    /**
-     * Handles create
-     * -
-     */
-    public function __construct(Collection $children)
+    public function __construct(private Collection $children, private ?object $attributes = null)
     {
         $this->setChildren($children);
     }
@@ -32,7 +25,7 @@ class RemoteFeedComposite implements InterfaceComponent
      * Add the collection of components awaiting before processed/executed/run
      *
      * @access  public
-     * @param   Collection $children A list of component instances
+     * @param   Collection<int, InterfaceShare> $children A list of component instances
      * @return  void
      */
     public function setChildren(Collection $children): void
@@ -46,9 +39,9 @@ class RemoteFeedComposite implements InterfaceComponent
      * Remove the component from the end of the collection
      *
      * @access  public
-     * @return  InterfaceComponent
+     * @return  InterfaceShare
      */
-    public function push(InterfaceComponent $component): self
+    public function push(InterfaceShare $component): self
     {
         $this->children->push($component);
         return $this;
@@ -60,9 +53,9 @@ class RemoteFeedComposite implements InterfaceComponent
      * Remove the component from the start of the collection
      *
      * @access  public
-     * @return  InterfaceComponent
+     * @return  InterfaceShare
      */
-    public function shift(): InterfaceComponent
+    public function shift(): InterfaceShare
     {
         return $this->children->shift();
     }
@@ -73,9 +66,9 @@ class RemoteFeedComposite implements InterfaceComponent
      * Remove the component from the end of the collection.
      *
      * @access  public
-     * @return  InterfaceComponent
+     * @return  InterfaceShare
      */
-    public function pop(): InterfaceComponent
+    public function pop(): InterfaceShare
     {
         return $this->children->pop();
     }
@@ -100,13 +93,12 @@ class RemoteFeedComposite implements InterfaceComponent
      */
     public function execute(): bool
     {
-        $response = true;
+        $response    = true;
         while ($response === true && $this->children->all() !== []) {
-            try {
-                $component = $this->shift();
-                $response &= $component->execute();
-            } catch(\Throwable $e) {
-                $response = false;
+            $component  = $this->shift();
+            $response  &= $component->acquire($this->attributes)->execute();
+            if ($response === true) {
+                $this->attributes = $component->share();
             }
         }
 
