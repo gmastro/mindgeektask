@@ -2,16 +2,15 @@
 
 namespace App\Events;
 
-use App\Customizations\Adapters\CurlDownloadAdapter;
-use App\Customizations\Components\CurlComponent;
-use App\Events\interfaces\InterfaceEvent;
-use App\Models\RemoteFeeds;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class RemoteFeedEvent implements InterfaceEvent
+class GroupEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,10 +18,8 @@ class RemoteFeedEvent implements InterfaceEvent
      * Create a new event instance.
      */
     public function __construct(
-        public RemoteFeeds $feed,
-        public string $disk,
-        public CurlComponent $curl,
-        public CurlDownloadAdapter $download
+        public bool $status,
+        public int $value
     ) {
         //
     }
@@ -35,7 +32,7 @@ class RemoteFeedEvent implements InterfaceEvent
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('channel-name'),
+            new PrivateChannel('bus-test-channel'),
         ];
     }
 }
