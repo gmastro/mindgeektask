@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Customizations\Composites;
 
 use App\Customizations\Composites\Composite;
-use App\Customizations\Composites\ExamineComponent;
 use App\Customizations\Composites\interfaces\InterfaceComposite;
 use App\Customizations\Composites\interfaces\InterfaceShare;
 use App\Customizations\Traits\ShareTrait;
@@ -15,20 +14,13 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 use UnhandledMatchError;
 
 #[CoversClass(Composite::class)]
-#[UsesClass(ExamineComponent::class)]
 #[UsesClass(ShareTrait::class)]
 class CompositeTest extends TestCase
 {
-    // public static function providerUrlsResults(): array
-    // {
-    //     return \array_map(fn($u, $r) => \array_merge($u, $r), self::providerUrls(), self::providerResults());
-    // }
-
     public static function providerEmpty(): array
     {
         return [

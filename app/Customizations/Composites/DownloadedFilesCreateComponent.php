@@ -28,22 +28,22 @@ class DownloadedFilesCreateComponent implements InterfaceShare
      */
     public function execute(): bool
     {
-        $response = true;
-
         try {
             DB::beginTransaction();
+            $isCached = match ($this->acquired->mime_type) {
+                'image/png', 'image/jpg', 'image/gif'   => true,
+                default                                 => false,
+            };
             $downloadedFilesModel = DownloadedFiles::updateOrCreate([
                 'filename'  => $this->acquired->filename,
                 'disk'      => $this->acquired->disk,
                 'mime_type' => $this->acquired->mime_type,
-                'is_cached' => match ($this->acquired->mime_type) {
-                    'image/png', 'image/jpg', 'image/gif'   => true,
-                    default                                 => false,
-                }
+                'is_cached' => $isCached,
             ], [
                 'filename'  => $this->acquired->filename,
                 'disk'      => $this->acquired->disk,
-                'mime_type' => $this->acquired->mime_type
+                'mime_type' => $this->acquired->mime_type,
+                'is_cached' => $isCached,
             ]);
 
             if ($this->has('model') === true) {
@@ -60,6 +60,8 @@ class DownloadedFilesCreateComponent implements InterfaceShare
                         ->save($extras),
                     default => null,
                 };
+
+                $this->transfer('model');
             }
             DB::commit();
         } catch(Throwable $e) {
@@ -68,9 +70,10 @@ class DownloadedFilesCreateComponent implements InterfaceShare
                 'message'  => $e->getMessage(),
                 'acquired' => $this->acquired
             ]);
-            $response = false;
+            
+            return false;
         }
 
-        return $response;
+        return true;
     }
 }
