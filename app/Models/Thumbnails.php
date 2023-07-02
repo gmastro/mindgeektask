@@ -36,6 +36,7 @@ class Thumbnails extends Model
 
     public function pornstars(): BelongsToMany
     {
-        return $this->belongsToMany(Pornstars::class);
+        return $this->belongsToMany(Pornstars::class, 'pornstars_thumbnails', 'thumbnail_id', 'pornstar_id')
+            ->withTimestamps();
     }
 }

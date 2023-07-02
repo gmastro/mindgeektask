@@ -22,6 +22,7 @@ class DownloadedFiles extends Model
 
         $md5Hash = function(DownloadedFiles $model): void {
             $filename = \implode('/',[config('filesystems.disks')[$model->disk]['root'], $model->filename]);
+            // $model->fullpath = $filename;
             $model->md5_hash = \md5($filename);
             $model->filesize = \is_file($filename)
                 ? (int) \filesize($filename)
