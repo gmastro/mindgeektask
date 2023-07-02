@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Models;
@@ -18,11 +19,11 @@ class RemoteFeeds extends Model
     protected static function boot()
     {
         parent::boot();
-        static::created(fn($model) => RemoteFeedEvent::dispatchIf(
+        static::created(fn ($model) => RemoteFeedEvent::dispatchIf(
             $model->is_active,
             $model->withoutRelations()
         ));
-        static::deleting(fn($model) => RemoteFeedDeleting::dispatch(
+        static::deleting(fn ($model) => RemoteFeedDeleting::dispatch(
             $model::withoutRelations('pornstars')
         ));
     }

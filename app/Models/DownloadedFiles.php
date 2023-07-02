@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Models;
@@ -20,8 +21,8 @@ class DownloadedFiles extends Model
         // use config to make this dynamic and get $this->app->isProduction() === false
         Model::preventSilentlyDiscardingAttributes();
 
-        $md5Hash = function(DownloadedFiles $model): void {
-            $filename = \implode('/',[config('filesystems.disks')[$model->disk]['root'], $model->filename]);
+        $md5Hash = function (DownloadedFiles $model): void {
+            $filename = \implode('/', [config('filesystems.disks')[$model->disk]['root'], $model->filename]);
             // $model->fullpath = $filename;
             $model->md5_hash = \md5($filename);
             $model->filesize = \is_file($filename)

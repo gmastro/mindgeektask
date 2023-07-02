@@ -24,7 +24,10 @@ use Throwable;
 
 class ProcessJob implements ShouldQueue, ShouldBeUnique
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     private $model;
 
@@ -54,11 +57,11 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
 
     public function handle(): void
     {
-       $collection = [
-            Pornstars::class            => [],
-            Thumbnails::class           => [],
-            PornstarsThumbnails::class  => [],
-        ];
+        $collection = [
+             Pornstars::class            => [],
+             Thumbnails::class           => [],
+             PornstarsThumbnails::class  => [],
+         ];
 
         foreach ($this->json->items as $item) {
             $thumbs = [];
@@ -107,7 +110,7 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
                 fn () => DB::table($table)->upsert($chunk->toArray(), $uniqueFields, $updateFields)
             )
         );
-        
+
         $pornstars = Pornstars::whereNotIn('id', \array_keys($collection[Pornstars::class]));
         DB::transaction(fn () => $pornstars->delete());
         info("removed Pornstars", ['total' => $pornstars->count()]);

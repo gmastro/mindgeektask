@@ -1,8 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Customizations\Adapters\CurlDownloadAdapter;
+use App\Customizations\Components\CurlComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Events\RemoteFeedEvent;
 use App\Models\RemoteFeeds;
@@ -14,7 +17,10 @@ use Illuminate\Queue\SerializesModels;
 
 class ProcessRemoteFeeds implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public function uniqueId(): string
     {
@@ -42,18 +48,28 @@ class ProcessRemoteFeeds implements ShouldQueue
      *     - remove data, files and cache from missing identifiers
      *     - upsert data (create/update)
      *     - create data for pivot tables after retrieving current content missing keys.
-     * 
+     *
      * Examine
      */
     public function handle(): void
     {
         RemoteFeeds::all()
-            ->reject(function ($feed): bool {
-                return $feed->is_active
-                    && (new ExamineComponent($feed))->execute();
-            })
+            ->reject(fn ($feed): bool => $feed->is_active === false)
             ->map(function ($feed): void {
-                RemoteFeedEvent::dispatch($feed::withoutRelations(), true);
+                $disk = "downloads";
+                $curlExaminer = new CurlComponent([
+                    CURLOPT_URL             => $feed->source,
+                    CURLOPT_NOBODY          => true,
+                    CURLOPT_RETURNTRANSFER  => true,
+                    CURLOPT_FILETIME        => true,
+                ]);
+                $curlDownload = new CurlDownloadAdapter($curlExaminer, config('filesystems.disks')[$disk]['root']);
+                RemoteFeedEvent::dispatch(
+                    $feed::withoutRelations(),
+                    $disk,
+                    $curlExaminer,
+                    $curlDownload
+                );
             });
     }
 }

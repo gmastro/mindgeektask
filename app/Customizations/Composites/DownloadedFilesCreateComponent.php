@@ -70,7 +70,7 @@ class DownloadedFilesCreateComponent implements InterfaceShare
                 'message'  => $e->getMessage(),
                 'acquired' => $this->acquired
             ]);
-            
+
             return false;
         }
 

@@ -48,6 +48,6 @@ class Pornstars extends Model
     {
         return $this->belongsToMany(Thumbnails::class, 'pornstars_thumbnails', 'pornstar_id', 'thumbnail_id')
             ->withTimestamps();
-            // ->using(PornstarsThumbnails::class);
+        // ->using(PornstarsThumbnails::class);
     }
 }

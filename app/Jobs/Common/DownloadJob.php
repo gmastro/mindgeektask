@@ -20,7 +20,10 @@ use Throwable;
 
 class DownloadJob implements ShouldQueue, ShouldBeUnique
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public $timeout = 360;
 
@@ -34,7 +37,7 @@ class DownloadJob implements ShouldQueue, ShouldBeUnique
     /**
      * Magic Constuctor
      *
-     * Each download process requires the following 
+     * Each download process requires the following
      */
     public function __construct(
         private Model $model,
