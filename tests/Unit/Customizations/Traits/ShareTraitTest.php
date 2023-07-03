@@ -6,6 +6,7 @@ namespace Tests\Unit\Customizations\Traits;
 use App\Customizations\Traits\ShareTrait;
 use App\Models\RemoteFeeds;
 use DateTimeImmutable;
+use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -96,6 +97,44 @@ class ShareTraitTest extends TestCase
         $this->assertIsObject($sut->share());
         $this->assertEquals((object) $append, $sut->share());
         return $sut;
+    }
+
+    #[Group('exception')]
+    #[Group('fetch')]
+    public function test_exception_fetch_content()
+    {
+        $key = 'moufa';
+        $this->expectException(OutOfBoundsException::class);
+        $this->expectExceptionMessage("Missing key: `$key`.");
+        $sut = new class{
+            use ShareTrait {
+                fetch as public;
+            }
+        };
+
+        $sut->fetch($key);
+    }
+
+    #[Group('success')]
+    #[Group('fetch')]
+    public function test_success_fetch_content(): void
+    {
+        $sut = new class{
+            use ShareTrait {
+                fetch as public;
+            }
+        };
+
+        $sut->acquire((object)['moufa' => 1]);
+        $this->assertSame(1, $sut->fetch('moufa'));
+
+        $referenced = &$sut->fetch('moufa');
+        $referenced += 41;
+        $this->assertSame($referenced, $sut->fetch('moufa'));
+
+        $withoutReference = $sut->fetch('moufa');
+        $withoutReference -= 41;
+        $this->assertSame(42, $sut->fetch('moufa'));
     }
 
     #[Group('success')]

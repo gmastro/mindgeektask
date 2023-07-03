@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace App\Customizations\Traits;
 
+use OutOfBoundsException;
+
 /**
  * Error Code Trait
  *
@@ -115,6 +117,27 @@ trait ShareTrait
         }
 
         return $this;
+    }
+
+    /**
+     * Retrieve Acquired Data
+     *
+     * Checks that the given key exists and returns its contents
+     * In case that it doesn't it will throw a runtime exception.
+     * The value used is passed by-reference so any changes will be passed within acquired data set
+     *
+     * @access  protected
+     * @param   string $key Name of the property to get
+     * @return  mixed
+     * @throws  OutOfBoundsException When the key is not defined
+     */
+    protected function & fetch(string $key): mixed
+    {
+        if ($this->has($key) === false) {
+            throw new OutOfBoundsException("Missing key: `$key`.");
+        }
+
+        return $this->acquired->$key;
     }
 
     /**
