@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Customizations\Composites\PornstarsComponent;
+use App\Jobs\Pornhub\ProcessJob;
 use App\Models\DownloadedFiles;
 use App\Models\RemoteFeeds;
 use Carbon\Carbon;
@@ -28,7 +28,7 @@ class RemoteFeedsFactory extends Factory
             'is_active'         => fake()->boolean(),
             'examine_counter'   => fake()->randomNumber(5),
             'download_counter'  => fake()->randomNumber(3),
-            'handle'            => fake()->randomElement([PornstarsComponent::class, Carbon::class]),
+            'handle'            => fake()->randomElement([ProcessJob::class, Carbon::class]),
             'created_at'        => Carbon::now(),
             'updated_at'        => Carbon::now(),
         ];

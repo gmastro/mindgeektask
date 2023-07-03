@@ -9,7 +9,7 @@ export default function Products({ products, type = 'pornstars' }) {
             <header>
                 <h2>{ucfirst(type)}</h2>
             </header>
-            <div>
+            <div className="flex">
                 {products.map((product) => <Product key={[type, product.id].join('-')} product={product} />)}
             </div>
         </>
