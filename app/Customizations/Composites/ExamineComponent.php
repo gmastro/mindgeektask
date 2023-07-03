@@ -5,18 +5,12 @@ declare(strict_types=1);
 namespace App\Customizations\Composites;
 
 use App\Customizations\Components\CurlComponent;
-use App\Customizations\Components\interfaces\InterfaceComponent;
 use App\Customizations\Composites\interfaces\InterfaceShare;
-use App\Customizations\Factories\CurlExaminer;
-use App\Customizations\Factories\GetHeadersExaminer;
-use App\Customizations\Factories\InterfaceExaminer;
 use App\Customizations\Traits\ShareTrait;
 use App\Models\RemoteFeeds;
 use Carbon\Carbon;
 use DomainException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class ExamineComponent implements InterfaceShare
 {
@@ -48,30 +42,32 @@ class ExamineComponent implements InterfaceShare
             throw new DomainException("Terminated, expected status code 200, instead got $statusCode");
         }
 
-        $this->append(['examine' => $examine]);
+        $this->transfer('disk')->append(['examine' => $examine]);
 
         if ($this->has('model') === false) {
             return $response;
         }
 
-        try {
-            DB::beginTransaction();
-            $modelClass = \get_class($this->acquired->model);
-            match ($modelClass) {
-                RemoteFeeds::class => $this->acquired->model->save([
-                    'examine_counter' => $this->acquired->model->examine_counter + 1
-                ]),
-                default => null,
-            };
-            DB::commit();
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error("Failed to update model", [
-                'message'   => $e->getMessage(),
-                'model'     => $this->acquired->model,
-            ]);
-            $response = false;
+        $filetime = Carbon::createFromTimestamp($info[$examine::FILETIME]);
+        $updatedAt = $this->acquired->model->updated_at ?? null;
+        if ($updatedAt !== null && $filetime->lt($updatedAt)) {
+            throw new DomainException(\strtr(
+                "Terminated, local content is up-to-date. Source: {source}, Local: {local}",
+                [
+                    '{source}'  => $filetime->toString(),
+                    '{local}'   => $this->acquired->model->updated_at->toString()
+                ]
+            ));
         }
+
+        $modelClass = \get_class($this->acquired->model);
+        match ($modelClass) {
+            RemoteFeeds::class => DB::transaction(function () {
+                $this->acquired->model->examine_counter += 1;
+                $this->acquired->model->save();
+            }),
+            default => null,
+        };
 
         $this->transfer('model');
         return $response;

@@ -48,8 +48,8 @@ class DownloadedFilesCreateComponent implements InterfaceShare
 
             if ($this->has('model') === true) {
                 $modelClass = \get_class($this->acquired->model);
-                $extras = match ($modelClass) {
-                    RemoteFeeds::class  => ['download_counter' => $this->acquired->model->download_counter + 1],
+                match ($modelClass) {
+                    RemoteFeeds::class  => $this->acquired->model->download_counter++,
                     default             => null,
                 };
 
@@ -57,7 +57,7 @@ class DownloadedFilesCreateComponent implements InterfaceShare
                     RemoteFeeds::class, Thumbnails::class => $this->acquired->model
                         ->downloaded()
                         ->associate($downloadedFilesModel)
-                        ->save($extras),
+                        ->save(),
                     default => null,
                 };
 

@@ -64,7 +64,7 @@ class DownloadedFilesCreateComponentTest extends TestCase
         $this->assertDatabaseCount('downloaded_files', 1);
 
         $shared = $sut->share();
-        // $this->assertSame(1, $shared->model->download_counter);
+        $this->assertSame(1, $shared->model->download_counter);
         $this->assertSame(1, $shared->model->downloaded_file_id);
         $this->assertSame($acquire['filename'], $shared->model->downloaded->filename);
         $this->assertSame($acquire['disk'], $shared->model->downloaded->disk);
