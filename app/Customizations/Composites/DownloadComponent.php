@@ -8,6 +8,10 @@ use App\Customizations\Adapters\CurlDownloadAdapter;
 use App\Customizations\Composites\interfaces\InterfaceShare;
 use App\Customizations\Traits\ShareTrait;
 use DomainException;
+use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
+use OutOfBoundsException;
 use RuntimeException;
 
 /**
@@ -23,16 +27,21 @@ class DownloadComponent implements InterfaceShare
 
     /**
      * {@inheritdoc}
+     *
+     * @throws  OutOfBoundsException it the disk has not been acquired via ShareTrait
+     * @throws  InvalidArgumentException if the disk is not configured
+     * @throws  DomainException if the storage process failed
      */
     public function execute(): bool
     {
-        $path = config('filesystems.disks')[$this->acquired->disk]['root'] ?? null;
+        /**
+         * @var     FilesystemManager $storage
+         */
+        $storage = Storage::disk($this->fetch('disk'));
+        $path = $storage->path('');
 
-        if ($path === null) {
-            throw new RuntimeException("Unknown disk: `$this->acquired->disk`. Please check config/filesystems.php file");
-        }
-
-        $download = new CurlDownloadAdapter($this->acquired->examine, $path);
+        $examiner = $this->fetch('examine');
+        $download = new CurlDownloadAdapter($examiner, $path);
         $response = $download->execute();
 
         if ($response === false) {
@@ -42,15 +51,14 @@ class DownloadComponent implements InterfaceShare
         }
 
         $filename = \explode('/', $download->getFilename());
-        $this
-            ->transfer('model')
+        $this->transfer('model')
+            ->transfer('disk')
             ->append([
-                'mime_type' => $this->acquired->examine->getInfo()[$this->acquired->examine::CONTENT_TYPE],
-                'disk'      => $this->acquired->disk,
-                'fullpath'  => $filename,
+                'mime_type' => $examiner->getInfo()[$examiner::CONTENT_TYPE],
+                'fullpath'  => $download->getFilename(),
                 'filename'  => \end($filename),
             ]);
 
-        return $response;
+        return true;
     }
 }
