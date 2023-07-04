@@ -8,7 +8,6 @@ use App\Customizations\Components\CurlComponent;
 use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Traits\ErrorCodeTrait;
 use App\Customizations\Traits\FilenameTrait;
-use ErrorException;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;

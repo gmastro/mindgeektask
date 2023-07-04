@@ -22,7 +22,7 @@ class ExamineComponent implements InterfaceShare
     public function execute(): bool
     {
         $examine = new CurlComponent([
-            CURLOPT_URL             => $this->acquired->source,
+            CURLOPT_URL             => $this->fetch('source'),
             CURLOPT_NOBODY          => true,
             CURLOPT_RETURNTRANSFER  => true,
             CURLOPT_FILETIME        => true,

@@ -50,11 +50,11 @@ class DownloadJob implements ShouldQueue, ShouldBeUnique
 
     public function handle(): bool
     {
-        $composite = new Composite(collect(
+        $composite = new Composite(collect([
             new ExamineComponent(),
             new DownloadComponent(),
             new DownloadedFilesCreateComponent(),
-        ), (object) [
+        ]), (object) [
             'source'    => $this->source,
             'model'     => $this->model,
             'disk'      => $this->disk,
