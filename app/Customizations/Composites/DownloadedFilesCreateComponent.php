@@ -30,31 +30,28 @@ class DownloadedFilesCreateComponent implements InterfaceShare
     {
         try {
             DB::beginTransaction();
-            $isCached = match ($this->acquired->mime_type) {
-                'image/png', 'image/jpg', 'image/gif'   => true,
-                default                                 => false,
-            };
-            $downloadedFilesModel = DownloadedFiles::updateOrCreate([
-                'filename'  => $this->acquired->filename,
-                'disk'      => $this->acquired->disk,
-                'mime_type' => $this->acquired->mime_type,
-                'is_cached' => $isCached,
-            ], [
-                'filename'  => $this->acquired->filename,
-                'disk'      => $this->acquired->disk,
-                'mime_type' => $this->acquired->mime_type,
-                'is_cached' => $isCached,
-            ]);
+            $data = [
+                'filename'  => $this->fetch('filename'),
+                'disk'      => $this->fetch('disk'),
+                'mime_type' => $this->fetch('mime_type'),
+                'is_cached' => match ($this->fetch('mime_type')) {
+                    'image/png', 'image/jpg', 'image/gif'   => true,
+                    default                                 => false,
+                },
+            ];
+
+            $downloadedFilesModel = DownloadedFiles::updateOrCreate($data, $data);
 
             if ($this->has('model') === true) {
-                $modelClass = \get_class($this->acquired->model);
+                $model = &$this->fetch('model');
+                $modelClass = \get_class($model);
                 match ($modelClass) {
-                    RemoteFeeds::class  => $this->acquired->model->download_counter++,
+                    RemoteFeeds::class  => $model->download_counter++,
                     default             => null,
                 };
 
                 match ($modelClass) {
-                    RemoteFeeds::class, Thumbnails::class => $this->acquired->model
+                    RemoteFeeds::class, Thumbnails::class => $model
                         ->downloaded()
                         ->associate($downloadedFilesModel)
                         ->save(),
