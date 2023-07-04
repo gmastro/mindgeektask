@@ -9,6 +9,7 @@ use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Traits\ErrorCodeTrait;
 use App\Customizations\Traits\FilenameTrait;
 use ErrorException;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -54,10 +55,14 @@ class CurlDownloadAdapterTest extends TestCase
     #[DataProvider('providerUrls')]
     public function test_success_constructor_with_curl(string $url, string $storagePath, string $expectedFilename): void
     {
-        $directory = config('filesystems.disks.downloads.root');
+        /**
+         * @var FilesystemManager $storage
+         */
+        $storage = Storage::fake('moufa');
+        $path = $storage->path('');
         $component = $this->urlToCurlComponent($url);
 
-        $sut = new CurlDownloadAdapter($component, $directory . $storagePath);
+        $sut = new CurlDownloadAdapter($component, $path . $storagePath);
         $response = $sut->execute();
 
         $this->assertTrue($response);

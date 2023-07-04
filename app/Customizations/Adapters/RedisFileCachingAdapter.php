@@ -7,6 +7,8 @@ namespace App\Customizations\Adapters;
 use App\Customizations\Adapters\interfaces\InterfaceAdapter;
 use App\Models\DownloadedFiles;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Facades\Storage;
 use Redis;
 
 class RedisFileCachingAdapter implements InterfaceAdapter
@@ -41,7 +43,11 @@ class RedisFileCachingAdapter implements InterfaceAdapter
      */
     private function cache(DownloadedFiles $model)
     {
-        $filename = \implode("/", [config("filesystems.disks")[$model->disk]['root'], $model->filename]);
+        /**
+         * @var FilesystemManager $storage
+         */
+        $storage = Storage::disk($model->disk);
+        $filename = \implode("/", [$storage->path(''), $model->filename]);
 
         if (\is_file($filename) === false) {
             return false;

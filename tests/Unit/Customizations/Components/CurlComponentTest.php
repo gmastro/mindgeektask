@@ -6,6 +6,8 @@ namespace Tests\Unit\Customizations\Components;
 use App\Customizations\Components\CurlComponent;
 use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Traits\ErrorCodeTrait;
+use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -91,8 +93,12 @@ class CurlComponentTest extends TestCase
     #[DataProvider('providerUrlsSmall')]
     public function test_success_constructor_get(string $url): void
     {
-        $uuid = Uuid::uuid4()->toString();
-        $filename = \sprintf("%s/%s", config('filesystems.disks.downloads.root'), $uuid);
+        /**
+         * @var FilesystemManager $storage
+         */
+        $storage = Storage::fake('moufa');
+        $path = $storage->path('');
+        $filename = \sprintf("%s/%s", $path, Uuid::uuid4()->toString());
         $out = new FileOpenComponent($filename);
         $out->execute();
 
@@ -112,7 +118,6 @@ class CurlComponentTest extends TestCase
         $this->assertSame(200, $info[$sut::STATUS_CODE]);
         $this->assertFileExists($filename);
         $this->assertSame((int) $info[$sut::CONTENT_LENGTH], (int) \filesize($filename));
-        \unlink($filename);
     }
 
     public static function providerNotUrl(): array

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class DownloadedFiles extends Model
 {
@@ -22,7 +23,11 @@ class DownloadedFiles extends Model
         Model::preventSilentlyDiscardingAttributes();
 
         $md5Hash = function (DownloadedFiles $model): void {
-            $filename = \implode('/', [config('filesystems.disks')[$model->disk]['root'], $model->filename]);
+            /**
+             * @var     FilesystemManager $storage
+             **/
+            $storage = Storage::disk($model->disk);
+            $filename = \implode('/', [$storage->path(''), $model->filename]);
             // $model->fullpath = $filename;
             $model->md5_hash = \md5($filename);
             $model->filesize = \is_file($filename)

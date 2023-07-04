@@ -13,6 +13,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -20,6 +21,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class ProcessJob implements ShouldQueue, ShouldBeUnique
@@ -51,7 +53,14 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
         // $this->model->withoutRelations('pornstars', 'thumbnails', 'downloaded_files');
         // $downloadedFilesModel = $this->model->downloaded;
         // $filename = \implode("/", [config("filesystems.disks")[$downloadedFilesModel->disk]['root'], $downloadedFilesModel->filename]);
-        $filename = \implode("/", [config("filesystems.disks.downloads.root"), "json_feed_pornstars.json"]);
+
+        // $filename = \implode("/", [config("filesystems.disks.downloads.root"), "json_feed_pornstars.json"]);
+        
+        /**
+         * @var     FilesystemManager $storage
+         **/
+        $storage = Storage::disk('downloads');
+        $filename = \implode("/", [$storage->path(''), "json_feed_pornstars.json"]);
         $this->json = \json_decode(\file_get_contents($filename));
     }
 
