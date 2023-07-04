@@ -12,7 +12,6 @@ use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use OutOfBoundsException;
-use RuntimeException;
 
 /**
  * Performs Download

@@ -10,18 +10,13 @@ use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Customizations\Composites\interfaces\InterfaceShare;
 use App\Customizations\Traits\ShareTrait;
-use App\Models\RemoteFeeds;
-use App\Models\Thumbnails;
 use DomainException;
-use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\UsesClass;
-use RuntimeException;
 use Tests\TestCase;
 
 #[CoversClass(DownloadComponent::class)]
