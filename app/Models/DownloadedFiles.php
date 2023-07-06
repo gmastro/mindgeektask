@@ -27,7 +27,7 @@ class DownloadedFiles extends Model
              * @var     FilesystemManager $storage
              **/
             $storage = Storage::disk($model->disk);
-            $filename = \implode('/', [$storage->path(''), $model->filename]);
+            $filename = $storage->path($model->filename);
             // $model->fullpath = $filename;
             $model->md5_hash = \md5($filename);
             $model->filesize = \is_file($filename)
@@ -55,11 +55,11 @@ class DownloadedFiles extends Model
 
     public function remote_feeds(): HasMany
     {
-        return $this->hasMany('remote_feeds', 'downloaded_file_id');
+        return $this->hasMany(RemoteFeeds::class, 'downloaded_file_id');
     }
 
     public function thumbnails(): HasMany
     {
-        return $this->hasMany('thumbnails', 'downloaded_file_id');
+        return $this->hasMany(Thumbnails::class, 'downloaded_file_id');
     }
 }
