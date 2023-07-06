@@ -47,13 +47,12 @@ class RedisFileCachingAdapter implements InterfaceAdapter
          * @var FilesystemManager $storage
          */
         $storage = Storage::disk($model->disk);
-        $filename = \implode("/", [$storage->path(''), $model->filename]);
 
-        if (\is_file($filename) === false) {
-            return false;
+        if ($storage->exists($model->filename) === false) {
+            return $this->unlink($model);
         }
 
-        return $this->pipe->set("key:$model->md5_hash", \file_get_contents($filename));
+        return $this->pipe->set("key:$model->md5_hash", $storage->get($model->filename));
     }
 
     /**

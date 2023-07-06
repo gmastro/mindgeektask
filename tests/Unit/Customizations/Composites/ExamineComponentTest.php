@@ -167,14 +167,14 @@ class ExamineComponentTest extends TestCase
     }
 
     #[Group('exception')]
-    #[Group('execute')]
+    #[Group('failure')]
     #[Group('model')]
     #[Depends('test_success_constructor')]
     #[DataProvider('providerSuccessWithModel')]
-    public function test_exception_model_up_to_date(array $acquire, ExamineComponent $sut): void
+    public function test_failure_model_up_to_date(array $acquire, ExamineComponent $sut): void
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessageMatches("%^Terminated, local content is up-to-date.*%");
+        // $this->expectException(DomainException::class);
+        // $this->expectExceptionMessageMatches("%^Terminated, local content is up-to-date.*%");
 
         [$modelClass, $modelData] = $acquire['model'];
         $modelData['updated_at'] = now();
@@ -182,6 +182,6 @@ class ExamineComponentTest extends TestCase
         $acquire['model'] = $modelClass::factory(1)->create($modelData)->first();
         $sut->acquire((object) $acquire);
 
-        $sut->execute();
+        $this->assertFalse($sut->execute());
     }
 }

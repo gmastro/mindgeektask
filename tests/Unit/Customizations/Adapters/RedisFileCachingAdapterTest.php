@@ -98,9 +98,13 @@ class RedisFileCachingAdapterTest extends TestCase
     #[Group('missing-file')]
     public function test_failure_missing_file()
     {
-        $collection = DownloadedFiles::factory(5)->create([
-            'is_cached' => 1
-        ]);
+        /**
+         * @var FilesystemManager $storage
+         */
+        $storage = Storage::fake('moufa');
+        \array_map(fn ($link) => self::download($link), self::providerUrls()['images-only'][0]);
+        $collection = DownloadedFiles::all();
+        $collection->map(fn ($model) => $storage->delete($model->filename));
 
         Redis::pipeline(fn($pipe) => (new RedisFileCachingAdapter($pipe, $collection))->execute());
 
@@ -114,6 +118,9 @@ class RedisFileCachingAdapterTest extends TestCase
     #[Group('soft-delete')]
     public function test_failure_soft_deleted()
     {
+        /**
+         * @var FilesystemManager $storage
+         */
         $storage = Storage::fake('moufa');
         \array_map(fn ($link) => self::download($link), self::providerUrls()['images-only'][0]);
         $collection = DownloadedFiles::all();
@@ -131,6 +138,9 @@ class RedisFileCachingAdapterTest extends TestCase
     #[Group('unlink')]
     public function test_success_unlink()
     {
+        /**
+         * @var FilesystemManager $storage
+         */
         $storage = Storage::fake('moufa');
         \array_map(fn ($link) => self::download($link), self::providerUrls()['images-only'][0]);
         $collection = DownloadedFiles::all();
