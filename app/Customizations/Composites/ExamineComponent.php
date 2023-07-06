@@ -51,13 +51,21 @@ class ExamineComponent implements InterfaceShare
         $filetime = Carbon::createFromTimestamp($info[$examine::FILETIME]);
         $updatedAt = $this->acquired->model->updated_at ?? null;
         if ($updatedAt !== null && $filetime->lt($updatedAt)) {
-            throw new DomainException(\strtr(
+            info(\strtr(
                 "Terminated, local content is up-to-date. Source: {source}, Local: {local}",
                 [
                     '{source}'  => $filetime->toString(),
                     '{local}'   => $this->acquired->model->updated_at->toString()
                 ]
             ));
+            $response = false;
+            // throw new DomainException(\strtr(
+            //     "Terminated, local content is up-to-date. Source: {source}, Local: {local}",
+            //     [
+            //         '{source}'  => $filetime->toString(),
+            //         '{local}'   => $this->acquired->model->updated_at->toString()
+            //     ]
+            // ));
         }
 
         $modelClass = \get_class($this->acquired->model);

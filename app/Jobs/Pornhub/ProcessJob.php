@@ -9,20 +9,17 @@ use App\Models\PornstarsThumbnails;
 use App\Models\RemoteFeeds;
 use App\Models\Thumbnails;
 use Carbon\Carbon;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Throwable;
 
 class ProcessJob implements ShouldQueue, ShouldBeUnique
 {
@@ -30,10 +27,9 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use Batchable;
 
     private $model;
-
-    private $json;
 
     private $chunks = 1000;
 
@@ -46,39 +42,46 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
         return __CLASS__;
     }
 
-    public function __construct()
+    public function __construct(private int $modelId)
     {
-        $this->model = RemoteFeeds::find(1)->withoutRelations('pornstars', 'thumbnails', 'downloaded_files');
         // $this->onQueue('process');
-        // $this->model->withoutRelations('pornstars', 'thumbnails', 'downloaded_files');
-        // $downloadedFilesModel = $this->model->downloaded;
+        // $remoteFeedModel->withoutRelations('pornstars', 'thumbnails', 'downloaded_files');
+        // $downloadedFilesModel = $remoteFeedModel->downloaded;
         // $filename = \implode("/", [config("filesystems.disks")[$downloadedFilesModel->disk]['root'], $downloadedFilesModel->filename]);
 
         // $filename = \implode("/", [config("filesystems.disks.downloads.root"), "json_feed_pornstars.json"]);
         
-        /**
-         * @var     FilesystemManager $storage
-         **/
-        $storage = Storage::disk('downloads');
-        $filename = \implode("/", [$storage->path(''), "json_feed_pornstars.json"]);
-        $this->json = \json_decode(\file_get_contents($filename));
+        // /**
+        //  * @var     FilesystemManager $storage
+        //  **/
+        // $storage = Storage::disk('downloads');
+        // $filename = \implode("/", [$storage->path(''), "json_feed_pornstars.json"]);
+        // $this->json = \json_decode(\file_get_contents($filename));
     }
 
     public function handle(): void
     {
+        $remoteFeedModel = RemoteFeeds::find($this->modelId)->withoutRelations('pornstars', 'thumbnails');
+
+        /**
+         * @var     FilesystemManager $storage
+         **/
+        $storage = Storage::disk($remoteFeedModel->downloaded->disk);
+        $json = $storage->json($remoteFeedModel->downloaded->filename);
+
         $collection = [
              Pornstars::class            => [],
              Thumbnails::class           => [],
              PornstarsThumbnails::class  => [],
          ];
 
-        foreach ($this->json->items as $item) {
+        foreach ($json->items as $item) {
             $thumbs = [];
             foreach ($item->thumbnails as $thumbnail) {
                 foreach($thumbnail->urls as $url) {
                     $collection[PornstarsThumbnails::class][$url][] = $item->id;
                     $thumbs[$url]['url']             = $url;
-                    $thumbs[$url]['remote_feed_id']  = $this->model->id;
+                    $thumbs[$url]['remote_feed_id']  = $remoteFeedModel->id;
                     $thumbs[$url]['width']           = $thumbnail->width;
                     $thumbs[$url]['height']          = $thumbnail->height;
                     $thumbs[$url]['media']           = \implode(
@@ -96,7 +99,7 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
             unset($attributes->stats);
             $collection[Pornstars::class][$item->id] = [
                 'id'            => $item->id,
-                'remote_feed_id'=> $this->model->id,
+                'remote_feed_id'=> $remoteFeedModel->id,
                 'name'          => $item->name,
                 'link'          => $item->link,
                 'license'       => $item->license,
@@ -150,9 +153,4 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
         );
         info("synced Pivot PornstarsThumbnails", ['total' => PornstarsThumbnails::count()]);
     }
-
-    // public function failed(Throwable $e)
-    // {
-    //     Log::error($e->getMessage());
-    // }
 }

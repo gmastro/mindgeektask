@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,10 @@ class Pornstars extends Model
         'aliases',
     ];
 
+    protected $appends = [
+        'downloads'
+    ];
+
     protected $casts = [
         'attributes'    => AsArrayObject::class,
         'stats'         => AsArrayObject::class,
@@ -48,6 +53,16 @@ class Pornstars extends Model
     {
         return $this->belongsToMany(Thumbnails::class, 'pornstars_thumbnails', 'pornstar_id', 'thumbnail_id')
             ->withTimestamps();
-        // ->using(PornstarsThumbnails::class);
+    }
+
+    public function getDownloadsAttribute()
+    {
+        return $this->thumbnails->map(fn ($model) => [
+            'url'       => $model->downloaded?->md5_hash,
+            'hotlink'   => $model->url,
+            'width'     => $model->width,
+            'height'    => $model->height,
+            'media'     => $model->media
+        ]);
     }
 }
