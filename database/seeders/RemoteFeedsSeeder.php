@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Customizations\Composites\PornstarsComponent;
-use App\Customizations\Factories\CurlDownload;
-use App\Customizations\Factories\CurlExaminer;
-use App\Models\DownloadedFiles;
+use App\Jobs\Pornhub\ProcessJob;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -25,9 +22,8 @@ class RemoteFeedsSeeder extends Seeder
                 'downloaded_file_id'=> null,
                 'source'            => 'https://www.pornhub.com/files/json_feed_pornstars.json',
                 'is_active'         => true,
-                'handle'            => PornstarsComponent::class,
+                'handle'            => ProcessJob::class,
                 'created_at'        => Carbon::now(),
-                'updated_at'        => Carbon::now(),
             ]
         ], [
             'source'
