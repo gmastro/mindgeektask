@@ -84,7 +84,7 @@ class Pornstars extends Model
      * It will return the right hand side value (collection)
      *
      * @access  public
-     * @return  BelongsTo
+     * @return  BelongsToMany
      */
     public function thumbnails(): BelongsToMany
     {

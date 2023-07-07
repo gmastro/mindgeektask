@@ -1,18 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Feature\Models;
 
-use App\Models\DownloadedFiles;
 use App\Models\Pornstars;
 use App\Models\PornstarsThumbnails;
 use App\Models\RemoteFeeds;
 use App\Models\Thumbnails;
-use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\TestRunner\TestResult\Collector;
 use Tests\TestCase;
 
 #[CoversClass(Pornstars::class)]
