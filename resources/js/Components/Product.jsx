@@ -24,14 +24,16 @@ export default function Product({ product }) {
     const cachedImageUrl = (hash) => ["/file/display", hash].join('/');
 
     return (
-        <div className="p-6 m-1 shadow-md rounded-lg bg-gray-200 hover:bg-orange-100">
+        <div className="p-2 m-1 shadow-md rounded-lg bg-gray-200 hover:bg-orange-100">
             <header>
                 <h3 className="text-lg text-orange-500 text-center">{name}</h3>
             </header>
             {downloads.map((dl) => 
-                <figure key={[rest.id, dl.url, 'thumbnail', 'cached'].join('-')}>
+                <figure key={[rest.id, dl.url, 'thumbnail', 'cached'].join('-')}
+                        className="text-center">
                     {/* or utilize picture tag/imgsrc attribute with dl.media, which, requires ',' split */}
                     <img src={cachedImageUrl(dl.url)}
+                         className="shadow-md rounded-md mx-auto"
                          width={dl.width}
                          height={dl.height}
                          alt="missing image" />
