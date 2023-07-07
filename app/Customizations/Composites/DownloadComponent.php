@@ -44,9 +44,16 @@ class DownloadComponent implements InterfaceShare
         $response = $download->execute();
 
         if ($response === false) {
-            throw new DomainException(\strtr("Terminated with the following errors: {errorCodes}", [
-                '{errorCodes}' => \implode(", ", \array_keys($download->getErrorBatch()))
-            ]));
+            info("Could not download content from source.", [
+                'errors'    => $download->getErrorBatch(),
+                'info'      => $examiner->getInfo(),
+                'filename'  => $download->getFilename(),
+            ]);
+
+            return $response;
+            // throw new DomainException(\strtr("Terminated with the following errors: {errorCodes}", [
+            //     '{errorCodes}' => \implode(", ", \array_keys($download->getErrorBatch()))
+            // ]));
         }
 
         $filename = \explode('/', $download->getFilename());

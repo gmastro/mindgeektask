@@ -59,13 +59,6 @@ class ExamineComponent implements InterfaceShare
                 ]
             ));
             $response = false;
-            // throw new DomainException(\strtr(
-            //     "Terminated, local content is up-to-date. Source: {source}, Local: {local}",
-            //     [
-            //         '{source}'  => $filetime->toString(),
-            //         '{local}'   => $this->acquired->model->updated_at->toString()
-            //     ]
-            // ));
         }
 
         $modelClass = \get_class($this->acquired->model);

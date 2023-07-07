@@ -117,14 +117,14 @@ class DownloadComponentTest extends TestCase
         ];
     }
 
-    #[Group('exception')]
+    #[Group('failure')]
     #[Group('execute')]
     #[DataProvider('providerFromRedirects')]
-    public function test_exception_no_content(object $acquire): void
+    public function test_failure_no_content(object $acquire): void
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessageMatches("%^Terminated with the following errors: .*%");
+        // $this->expectException(DomainException::class);
+        // $this->expectExceptionMessageMatches("%^Terminated with the following errors: .*%");
         $sut = new DownloadComponent();
-        $sut->acquire($acquire)->execute();
+        $this->assertFalse($sut->acquire($acquire)->execute());
     }
 }

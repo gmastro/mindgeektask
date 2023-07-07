@@ -32,9 +32,9 @@ class CurlDownloadAdapter implements InterfaceAdapter, InterfaceErrorCodes
      *
      * @access  public
      * @param   InterfaceRemoteStream $remote Download handler
-     * @param   InterfaceStorage $storage Determines how and where downloaded content will be stored
-     * @param   string $disk One of the storage declared local disks.
+     * @param   string $storagePath Location to store content
      * @return  self
+     * @todo    Replace directory separator is sprintf with one relative to OS
      */
     public function __construct(private InterfaceRemoteStream $remote, string $storagePath)
     {
