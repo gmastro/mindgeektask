@@ -10,7 +10,6 @@ use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Customizations\Composites\interfaces\InterfaceShare;
 use App\Customizations\Traits\ShareTrait;
-use DomainException;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -122,8 +121,6 @@ class DownloadComponentTest extends TestCase
     #[DataProvider('providerFromRedirects')]
     public function test_failure_no_content(object $acquire): void
     {
-        // $this->expectException(DomainException::class);
-        // $this->expectExceptionMessageMatches("%^Terminated with the following errors: .*%");
         $sut = new DownloadComponent();
         $this->assertFalse($sut->acquire($acquire)->execute());
     }

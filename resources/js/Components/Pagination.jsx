@@ -38,7 +38,7 @@ export default function Pagination({ pages, styles, options }) {
     // const grids = (boundaries ? 2 : 0) + (wrappers ? 2 : 0) + (limit > 0 ? limit : 0);
 
     const applyStyles = (attr) => literals(attr, styles) ?? literals(attr, {
-        outer   : "flex flex-col flex-wrap shadow-md pb-2",
+        outer   : "flex flex-col flex-wrap shadow-md pb-2 mt-2 rounded-md",
         inner   : `flex flex-wrap mt-1 justify-center`,
         // within  : limit > 0 ? `grid grid-cols-${limit} gap-1` : "",
         summary : "bg-gray-100 text-indigo-400 rounded-md p-2",

@@ -44,19 +44,7 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
 
     public function __construct(private int $modelId)
     {
-        // $this->onQueue('process');
-        // $remoteFeedModel->withoutRelations('pornstars', 'thumbnails', 'downloaded_files');
-        // $downloadedFilesModel = $remoteFeedModel->downloaded;
-        // $filename = \implode("/", [config("filesystems.disks")[$downloadedFilesModel->disk]['root'], $downloadedFilesModel->filename]);
-
-        // $filename = \implode("/", [config("filesystems.disks.downloads.root"), "json_feed_pornstars.json"]);
-        
-        // /**
-        //  * @var     FilesystemManager $storage
-        //  **/
-        // $storage = Storage::disk('downloads');
-        // $filename = \implode("/", [$storage->path(''), "json_feed_pornstars.json"]);
-        // $this->json = \json_decode(\file_get_contents($filename));
+        //
     }
 
     public function handle(): void
@@ -67,7 +55,7 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
          * @var     FilesystemManager $storage
          **/
         $storage = Storage::disk($remoteFeedModel->downloaded->disk);
-        $json = $storage->json($remoteFeedModel->downloaded->filename);
+        $json = \json_decode($storage->get($remoteFeedModel->downloaded->filename));
 
         $collection = [
              Pornstars::class            => [],
@@ -89,7 +77,6 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
                         isset($thumbs[$url]['media']) ? [$thumbs[$url]['media'], $thumbnail->type] : [$thumbnail->type]
                     );
                     $thumbs[$url]['created_at']      = Carbon::now();
-                    $thumbs[$url]['updated_at']      = Carbon::now();
                 }
             }
 
@@ -108,7 +95,6 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
                 'stats'         => \json_encode($stats),
                 'aliases'       => \json_encode($item->aliases ?? []),
                 'created_at'    => Carbon::now(),
-                'updated_at'    => Carbon::now(),
             ];
         }
 
@@ -131,7 +117,7 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
             collect($collection[Pornstars::class])->chunk(1000),
             app(Pornstars::class)->getTable(),
             'id',
-            ['id', 'name', 'link', 'license', 'wlStatus', 'attributes', 'stats', 'aliases', 'updated_at']
+            ['id', 'name', 'link', 'license', 'wlStatus', 'attributes', 'stats', 'aliases']
         );
         info("upserted Pornstars", ['total' => Pornstars::count()]);
 
@@ -143,7 +129,7 @@ class ProcessJob implements ShouldQueue, ShouldBeUnique
             collect($collection[Thumbnails::class])->chunk(1000),
             app(Thumbnails::class)->getTable(),
             'url',
-            ['url', 'width', 'height', 'media', 'updated_at']
+            ['url', 'width', 'height', 'media']
         );
         info("upserted Thumbnails", ['total' => Thumbnails::count()]);
 
