@@ -6,13 +6,8 @@ use App\Events\ChirpCreated;
 use App\Events\DownloadEvent;
 use App\Events\ExamineEvent;
 use App\Events\RedisCacheEvent;
-use App\Events\RemoteFeedDeleting;
-use App\Events\RemoteFeedEvent;
-use App\Listeners\DownloadListener;
-use App\Listeners\ExamineListener;
-use App\Listeners\RedisCacheListener;
-use App\Listeners\RemoteFeedCleanupListener;
-use App\Listeners\RemoteFeedListener;
+use App\Events\RemoteFeedDeletingListener;
+use App\Events\RemoteFeedCreatedListener;
 use App\Listeners\SendChirpCreatedNotifications;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -32,23 +27,11 @@ class EventServiceProvider extends ServiceProvider
         ChirpCreated::class => [
             SendChirpCreatedNotifications::class,
         ],
-        // some old events, still need to reconsider and put them in subscription instead?
-        // some experemintation is still required
         RemoteFeedDeleting::class => [
-            RemoteFeedCleanupListener::class,
+            RemoteFeedDeletingListener::class,
         ],
-        RemoteFeedEvent::class => [
-            RemoteFeedListener::class,
-        ],
-        // and do your stuff from here
-        ExamineEvent::class     => [
-            ExamineListener::class
-        ],
-        DownloadEvent::class    => [
-            DownloadListener::class,
-        ],
-        RedisCacheEvent::class  => [
-            RedisCacheListener::class,
+        RemoteFeedCreated::class => [
+            RemoteFeedCreatedListener::class,
         ],
     ];
 

@@ -2,20 +2,20 @@
 
 namespace App\Events;
 
-use App\Customizations\Components\CurlComponent;
+use App\Models\RemoteFeeds;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class DownloadEvent
+class RemoteFeedCreated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(public CurlComponent $examine, public string $disk) {
+    public function __construct(public RemoteFeeds $model) {
         //
     }
 

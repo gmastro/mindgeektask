@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Events\RemoteFeedCreated;
 use App\Events\RemoteFeedDeleting;
-use App\Events\RemoteFeedEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +19,7 @@ class RemoteFeeds extends Model
     protected static function boot()
     {
         parent::boot();
-        static::created(fn ($model) => RemoteFeedEvent::dispatchIf(
+        static::created(fn ($model) => RemoteFeedCreated::dispatchIf(
             $model->is_active,
             $model->withoutRelations()
         ));
