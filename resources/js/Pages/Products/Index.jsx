@@ -13,12 +13,16 @@ export default function Index({products, type, source}) {
             <Head title={ucfirst(type)} />
             <article>
                 <header>
-                    <span>From source: {source}</span>
+                    <h2 className="text-xl">
+                        {ucfirst(type)}
+                        <span className="text-sm float-right"><i>Source: <Link className="text-orange-500" href={source}>{source}</Link></i></span>
+                    </h2>
                 </header>
                 <section>
-                    <Pagination pages={rest} options={{boundaries: false}} />
+                    <Pagination pages={rest} />
                     <Products products={data} type={type} />
-                    <Pagination pages={rest} options={{summary: false, buttons:7}}/>
+                    <Pagination pages={rest} options={{summary: false}}/>
+                    {/* <Pagination pages={rest} options={{summary: false, buttons:7}}/> */}
                 </section>
             </article>
         </Guest>
