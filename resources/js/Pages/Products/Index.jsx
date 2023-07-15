@@ -4,7 +4,7 @@ import Products from "@/Components/Products";
 import Guest from "@/Layouts/GuestLayout";
 import Pagination from "@/Components/Pagination";
 
-export default function Index({products, type, source}) {
+export default function Index( {auth, products, type, source} ) {
     const {data, ...rest} = products;
     const ucfirst = (word) => [word.charAt(0).toUpperCase(), word.slice(1).toLowerCase()].join('');
 
@@ -20,7 +20,7 @@ export default function Index({products, type, source}) {
                 </header>
                 <section>
                     <Pagination pages={rest} />
-                    <Products products={data} type={type} />
+                    <Products auth={auth} products={data} type={type} />
                     <Pagination pages={rest} options={{summary: false}}/>
                     {/* <Pagination pages={rest} options={{summary: false, buttons:7}}/> */}
                 </section>

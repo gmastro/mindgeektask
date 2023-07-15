@@ -523,10 +523,54 @@ Back to [Home](#guide) - [Contents](#contents) - [Conclusions](#conclusions)
 
 #### Relations
 
-Tested one to many, many to many, pivots. Nothing to do with polymorphism
-Tricky bit, a many-to-many relation has to be defined in reverse order via belongs-to-many.
-Uneeded complexity with that many classes and methods, that might deliver the same result.
+Tested one-to-many and many-to-many relations.
+I haven't tested polymorphism, as there was no need.
+
+> **Note**: Polymorphism opposes the normalization concepts of relational database design.
+>           If you are working with relational databases, you **MAY** consider `ssid` structures, i.e. fetch the data, cast it when and if needed without the overhead of implementing new classes, methods and discovery bootstraps!
+
+One-to-many is pretty straightforward and easy to implement.
+The tricky bit stars with a many-to-many relation, which, has to be defined in reverse order via `Illuminate\Database\Eloquent\Relations\BelongsToMany`.
+
+This is some unnecessary _time consuming_ complexity, just to understand the concept.
+
 In comparison, other frameworks, have a more straightforward approach on models and relations.
+
+Moreover, the schema used has the following tables and relations
+
+- `remote_feeds`
+  - one-to-many `pornstars`
+  - one-to-many `thumbnails`
+- `pornstars`
+  - many-to-many `thumbnails` via pivot `pornstars-thumbnails`
+- `thumbnails`
+  - many-to-many `pornstars` via pivot `pornstars-thumbnails`
+- `pornstars_thumbnails` _pivot_
+- `downloaded_files`
+  - one-to-many `remote_feeds`
+  - one-to-many `thumbnails`
+
+What the framework cannot do with all those build in classes is to get the following relation **WITHOUT** eagerly loading it.
+
+```
+`pornstars` 
+  -> via pivot `pornstars_thumbnails`
+  -> via `thumbnails`
+  -> `downloaded_files`
+```
+
+You **MAY** create an attribute for this purpose with couple of options
+- memory consuming calls from existing relations and possible map iterations (since it is a one-to-many)
+- eagerly load the content, after calling invoking a lazy loaded relation.
+
+Or, you **MAY** create a relational database `view` via migrations, but oops, no such thing in `Illuminate\Database\Schema\Blueprint`.
+
+If chose the latter, you will have to;
+- `hardcode` the view,
+- capture as many possible supported cases per database engines used 
+- try to prevent inconsistences when calling the model
+
+> **Comment**:  Such a headache!
 
 -----
 
@@ -537,7 +581,8 @@ Back to [Home](#guide) - [Contents](#contents) - [Conclusions](#conclusions) - [
 #### Upserts
 
 Way the best way to reduce time for inserting content.
-Anything converted to Eloquent is an _overkill_ especially when eagerly loaded, has relations and is not cached
+
+Anything converted to Eloquent is an _overkill_ especially when eagerly loaded, has relations and is not cached.
 
 -----
 
@@ -547,7 +592,8 @@ Back to [Home](#guide) - [Contents](#contents) - [Conclusions](#conclusions) - [
 
 #### Transactions
 
-Love the part with the closures and repeat via `DB::transaction()`, but there is no error handling
+Love the part with the closures and repeat via `DB::transaction()`, but there is no error handling.
+
 Only try/catch cases with `DB::beginTransaction()`, `DB::commit()`, `DB::rollBack()`
 
 -----
@@ -559,7 +605,8 @@ Back to [Home](#guide) - [Contents](#contents) - [Conclusions](#conclusions) - [
 #### Incosistencies
 
 You have to remember when the content is an object, when it is an array, when it is Eloquent Collection and when Support Collection.
-Thus, you have to have tinker for testing all the time, plus, restart it with every change
+
+Thus, you have to have `artisan tinker` for testing all the time, plus, restart it with every change.
 
 -----
 
@@ -611,6 +658,8 @@ Also experimented and utilized Chain and Batch `Jobs`;
 Reduced payload will do the difference.
 It's one of those few cases where Documentation explicitely states it.
 The problem is that you need to figure it out yourself the hard way.
+
+> **Note**: `artisan queue` is not for production. Good for testing and this is all about it.
 
 Now about timeout cases and racing conditions on resources per `Job` or `Listener` a multitude of jobs is on my Todo list. Most probably a knapsack problem with additional prediction algos.
 

@@ -1,26 +1,29 @@
 import React from 'react';
 
-export default function Details({ summary, details, groupId, isOpen }) {
+const styles = {
+    details: "open:bg-white dark:open:bg-slate-900 dark:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-4 rounded-lg mt-2",
+    summary: "text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none",
+    ul: "text-sm leading-6 text-slate-600 dark:text-slate-400",
+    li: "flex justify-between",
+}
 
-    let detailsClassName="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg",
-        summaryClassName="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none",
-        ulClassName="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400";
+export default function Details({ summary, details, groupId = 0, isOpen = false }) {
+    const setKey = (n, delimiter = "-") => [n, groupId].join(delimiter);
 
-    const isObject = typeof(details) === 'object';
-
-    let inner = (
-        <>
-            <summary className={summaryClassName}><b>{summary}</b></summary>
-            <ul className={ulClassName}>
-            {isObject
-                ? Object.keys(details).map( (keyname, index) => <li key={[keyname, groupId].join("-")}>{keyname}: {details[keyname]}</li>)
-                : details.map( v => <li key={[v, groupId].join("-")}>{v}</li>)
+    return (
+        <details className={styles.details} open={isOpen}>
+            <summary className={styles.summary}>{summary}</summary>
+            <ul className={styles.ul}>
+            {typeof(details) === 'object'
+                ? Object.keys(details).map( (keyname, index) => (
+                    <li key={setKey(keyname)} className={styles.li}>
+                        <b>{keyname}</b>
+                        <span>{details[keyname]}</span>
+                    </li>
+                ))
+                : details.map( v => <li key={setKey(v)}>{v}</li>)
             }
             </ul>
-        </>
-    )
-
-    return isOpen
-        ?  <details className={detailsClassName} open>{inner}</details>
-        :  <details className={detailsClassName}>{inner}</details>
+        </details>
+    );
 }

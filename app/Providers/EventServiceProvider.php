@@ -3,11 +3,10 @@
 namespace App\Providers;
 
 use App\Events\ChirpCreated;
-use App\Events\DownloadEvent;
-use App\Events\ExamineEvent;
-use App\Events\RedisCacheEvent;
-use App\Events\RemoteFeedDeletingListener;
-use App\Events\RemoteFeedCreatedListener;
+use App\Events\RemoteFeedDeleting;
+use App\Events\RemoteFeedCreated;
+use App\Listeners\RemoteFeedCreatedListener;
+use App\Listeners\RemoteFeedDeletingListener;
 use App\Listeners\SendChirpCreatedNotifications;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
