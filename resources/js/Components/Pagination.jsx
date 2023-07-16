@@ -16,7 +16,7 @@ export default function Pagination({ pages, styles, options }) {
 
     const literals = (attr, o = {}) => o[attr] ?? null;
 
-    const isDisabled = (param) => param === null;
+    const isDisabled = (param) => param == null;
 
     const applyOptions = (attr) => literals(attr, options) ?? literals(attr, {
         first: <>&lt;&lt;</>,
@@ -32,21 +32,19 @@ export default function Pagination({ pages, styles, options }) {
         distinct: 'pagination',
     });
 
-    const boundaries = applyOptions("boundaries");
-    const wrappers = applyOptions("wrappers");
-    const limit = applyOptions("buttons");
-    // const grids = (boundaries ? 2 : 0) + (wrappers ? 2 : 0) + (limit > 0 ? limit : 0);
-
     const applyStyles = (attr) => literals(attr, styles) ?? literals(attr, {
         outer   : "flex flex-col flex-wrap shadow-md pb-2 mt-2 rounded-md",
         inner   : `flex flex-wrap mt-1 justify-center`,
-        // within  : limit > 0 ? `grid grid-cols-${limit} gap-1` : "",
-        summary : "bg-gray-100 text-indigo-400 rounded-md p-2",
-        buttons : "border border-solid border-gray-300 rounded-md p-2 hover:text-orange-500 shadow-md text-center mx-1",
-        disabled: "text-gray rounded-md p-2 shadow-md text-center mx-1",
+        summary : "p-2 text-indigo-400 bg-gray-100 rounded-md",
+        buttons : "p-2 mx-1 min-w-[3rem] text-center hover:text-orange-500 dark:hover:text-orange-500 border border-solid border-gray-300 rounded-md shadow-md",
+        disabled: "p-2 mx-1 min-w-[3rem] text-center text-gray-300 dark:text-gray-300 rounded-md shadow-md cursor-not-allowed",
     });
 
+    const boundaries = applyOptions("boundaries");
+    const wrappers = applyOptions("wrappers");
+    const limit = applyOptions("buttons");
     const buttonCls = applyStyles("buttons");
+    const disabledCls = applyStyles("disabled");
 
     const summary = (content) => {
         const {per_page, from, to, total} = content;
@@ -65,13 +63,17 @@ export default function Pagination({ pages, styles, options }) {
             return (<>...</>);
         }
 
-        var arr = [<Link key={[distinct, current_page].join("-")} className={applyStyles("disabled")} disabled={true}>{current_page}</Link>];
+        var arr = [<Link key={[distinct, current_page].join("-")} className={disabledCls} disabled={true}>{current_page}</Link>];
 
         const pagePath  = (node)            => 
             path + "?" + [applyOptions("query"), node].join("=")
         const tagNode   = (node)            => 
             <Link key={[distinct, node].join("-")} className={buttonCls} href={pagePath(node)}>{node}</Link>
         const before    = (index, node, arr) => {
+            if (applyOptions("direction") == "after") {
+                return [index, node];
+            }
+
             if (node > 1 && index <= limit) {
                 ++index
                 --node
@@ -81,7 +83,11 @@ export default function Pagination({ pages, styles, options }) {
             return [index, node];
         }
         const after     = (index, node, arr) => {
-            if (last_page >= node && index <= limit) {
+            if (applyOptions("direction") == "before") {
+                return [index, node];
+            }
+
+            if (last_page > node && index <= limit) {
                 ++index;
                 ++node;
                 arr.push(tagNode(node));
@@ -90,7 +96,7 @@ export default function Pagination({ pages, styles, options }) {
             return [index, node];
         }
 
-        for (let i = 1, index = 1, forward = current_page, back = current_page; i < limit; [index, forward] = after(index, forward, arr), [index, back] = before(index, back, arr), i = index != i ? index : i+1);
+        for (let i = 1, index = 1, forward = current_page, back = current_page; i < limit; [index, forward] = after(index, forward, arr), [index, back] = before(index, back, arr), i = index > i ? index : i+1);
 
         return (
             <>
@@ -99,29 +105,27 @@ export default function Pagination({ pages, styles, options }) {
         );
     }
 
+    const display = (url, compare, applied, option = true) => {
+        if(option == false) {
+            return;
+        }
+
+        let content = applyOptions(applied);
+
+        return isDisabled(compare)
+            ? <span className={disabledCls}>{content}</span>
+            : <Link className={buttonCls} href={url}>{content}</Link>;
+    };
+
     return (
         <div className={applyStyles("outer")}>
             {applyOptions("summary") && summary(rest)}
             <div className={applyStyles("inner")}>
-                {boundaries &&
-                    <Link className={buttonCls}
-                          href={first_page_url}>{applyOptions("first")}</Link>
-                }
-                {wrappers && 
-                    <Link className={buttonCls}
-                          href={prev_page_url}
-                          disabled={isDisabled(prev_page_url)}>{applyOptions("prev")}</Link>
-                }
+                {display(first_page_url, prev_page_url, "first", boundaries)}
+                {display(prev_page_url, prev_page_url, "prev", wrappers)}
                 {buttons()}
-                {wrappers &&
-                    <Link className={buttonCls}
-                          href={next_page_url}
-                          disabled={isDisabled(next_page_url)}>{applyOptions("next")}</Link>
-                }
-                {boundaries && 
-                    <Link className={buttonCls}
-                          href={last_page_url}>{applyOptions("last")}</Link>
-                }
+                {display(next_page_url, next_page_url, "next", wrappers)}
+                {display(last_page_url, next_page_url, "last", boundaries)}
             </div>
          </div>
     );
