@@ -36,9 +36,9 @@ Route::get('/', fn() => Inertia::render('Welcome', [
     'phpVersion'        => PHP_VERSION,
 ]))->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', fn() => Inertia::render('Dashboard', [
+    'products'  => RemoteFeeds::all()
+]))->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::resource('chirps', ChirpController::class)
     ->only(['index', 'store', 'update', 'destroy'])
@@ -48,12 +48,13 @@ Route::get('/products', fn() => Inertia::render("Products/Feeds", [
     'products'  => RemoteFeeds::all(),
 ]))->name('products');
 
-
 Route::name('products.')->prefix('products')->group(function () {
     Route::get('/pornstars', fn() => Inertia::render("Products/Index", [
+        // default view
         // 'products'  => Pornstars::paginate(20),
         // 'type'      => 'pornstars',
         // 'source'    => RemoteFeeds::first()->source,
+        // or view that will not displease me
         'products'  => Pornstars::with('thumbnails')
             ->has('thumbnails')
             ->whereNotIn('attributes->gender', ['male', 'm2f'])
