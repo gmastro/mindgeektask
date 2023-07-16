@@ -42,7 +42,7 @@ Route::resource('chirps', ChirpController::class)
 Route::get('/products', fn() => Inertia::render("Products/Index", [
     'products'  => Pornstars::with('thumbnails')
         ->has('thumbnails')
-        ->where('attributes->gender', '<>', 'male')
+        ->whereNotIn('attributes->gender', ['male', 'm2f'])
         ->paginate(20),
     'type'      => 'pornstars',
     'source'    => RemoteFeeds::first()->source,
