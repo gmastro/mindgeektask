@@ -19,6 +19,7 @@ class RemoteFeedsSeeder extends Seeder
     {
         DB::table('remote_feeds')->upsert([
             [
+                'name'              => 'Pornstars',
                 'downloaded_file_id'=> null,
                 'source'            => 'https://www.pornhub.com/files/json_feed_pornstars.json',
                 'is_active'         => true,
@@ -28,7 +29,7 @@ class RemoteFeedsSeeder extends Seeder
         ], [
             'source'
         ], [
-            'downloaded_file_id', 'source', 'is_active', 'handle', 'created_at', 'updated_at'
+            'name', 'downloaded_file_id', 'source', 'is_active', 'handle', 'created_at', 'updated_at'
         ]);
     }
 }

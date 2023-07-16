@@ -29,6 +29,7 @@ class RemoteFeeds extends Model
     }
 
     public $fillable = [
+        'name',
         'downloaded_file_id',
         'source',
         'handle',

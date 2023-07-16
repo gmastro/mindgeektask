@@ -23,6 +23,7 @@ class RemoteFeedsFactory extends Factory
     public function definition(): array
     {
         return [
+            'name'              => fake()->name(),
             'downloaded_file_id'=> DownloadedFiles::factory(),
             'source'            => fake()->unique()->url(),
             'is_active'         => fake()->boolean(),
