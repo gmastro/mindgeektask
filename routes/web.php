@@ -3,11 +3,16 @@
 use App\Http\Controllers\ChirpController;
 use App\Http\Controllers\ProfileController;
 use App\Jobs\Common\CacheJob;
+use App\Jobs\Common\DownloadJob;
+use App\Jobs\Common\ThumbnailsJob;
 use App\Models\DownloadedFiles;
 use App\Models\Pornstars;
 use App\Models\RemoteFeeds;
 use App\Models\Thumbnails;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -39,21 +44,66 @@ Route::resource('chirps', ChirpController::class)
     ->only(['index', 'store', 'update', 'destroy'])
     ->middleware(['auth', 'verified']);
 
-Route::get('/products', fn() => Inertia::render("Products/Index", [
-    'products'  => Pornstars::with('thumbnails')
-        ->has('thumbnails')
-        ->whereNotIn('attributes->gender', ['male', 'm2f'])
-        ->paginate(20),
-    'type'      => 'pornstars',
-    'source'    => RemoteFeeds::first()->source,
+Route::get('/products', fn() => Inertia::render("Products/Feeds", [
+    'products'  => RemoteFeeds::all(),
 ]))->name('products');
+
 
 Route::name('products.')->prefix('products')->group(function () {
     Route::get('/pornstars', fn() => Inertia::render("Products/Index", [
-        'products'  => Pornstars::paginate(20),
+        // 'products'  => Pornstars::paginate(20),
+        // 'type'      => 'pornstars',
+        // 'source'    => RemoteFeeds::first()->source,
+        'products'  => Pornstars::with('thumbnails')
+            ->has('thumbnails')
+            ->whereNotIn('attributes->gender', ['male', 'm2f'])
+            ->paginate(20),
         'type'      => 'pornstars',
         'source'    => RemoteFeeds::first()->source,
     ]))->name('pornstars');
+
+    Route::post('/job', function () {
+        $request = request();
+        $data = $request->validate(['data.id' => 'required|integer']);
+        $model = RemoteFeeds::find(intval($data['data']['id']));
+
+        if ($model === null) {
+            Redirect::back()->with(['status' => 404, 'message' => 'These are not the droids you are looking for']);
+        }
+
+        $chain = [
+            new DownloadJob($model),
+        ];
+
+        if (\class_exists($model->handle)) {
+            $class = $model->handle;
+            $chain[] = new $class($model->id);
+        }
+
+        $chain[] = new ThumbnailsJob($model->id);
+        $chain[] = new CacheJob();
+
+        Bus::chain($chain)
+            ->onQueue('downloads')
+            ->dispatch();
+
+        return Redirect::back()->with(['status' => 200, 'message' => 'job dispatched']);
+    })->middleware(['auth', 'verified'])->name('job');
+
+    Route::post('/toggle', function () {
+        $request = request();
+        $data = $request->validate(['data.id' => 'required|integer']);
+        $model = RemoteFeeds::find(intval($data['data']['id']));
+
+        if ($model === null) {
+            Redirect::back()->with(['status' => 404, 'message' => 'These are not the droids you are looking for']);
+        }
+
+        $model->is_active = !$model->is_active;
+        $model->save();
+
+        return Redirect::back()->with(['status' => 200, 'data' => 'toggle oeo' ]);
+    })->middleware(['auth', 'verified'])->name('toggle');
 });
 
 Route::get('/file/display/{code}', function(string $code) {
