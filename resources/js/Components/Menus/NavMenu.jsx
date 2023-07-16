@@ -3,7 +3,7 @@ import md5 from 'md5';
 
 export default function NavMenu({
     contents,
-    tag="NavLink",
+    tag="a",
     depth = 0,
     inner = '',
     forcedWrapper = null,
@@ -36,7 +36,7 @@ export default function NavMenu({
         },
         plain: {
             a: o => {
-                const {key, url, label, active, ...rest} = o;
+                const {key, type, url, label, active, ...rest} = o;
                 return (<a key={key} href={url} {...rest}>{label}</a>);
             },
         }
@@ -188,7 +188,7 @@ export default function NavMenu({
      * @returns {Element}
      */
     const labelAsMenuLeaf = (props) => {
-        const {url, label, wrapper} = props,
+        const {url, label, wrapper, inner = "inner"} = props,
               urlType = isOfType(url),
               items = {
                   string: {[label]: {label: label, url: url}},
@@ -201,7 +201,7 @@ export default function NavMenu({
 
         return wrapping(
             wrapper,
-            <NavMenu contents={items} depth={depth} inner="inner" templates={templates} styles={styles} />
+            <NavMenu contents={items} depth={depth} inner={inner} templates={templates} styles={styles} />
         );
     };
 
@@ -214,8 +214,9 @@ export default function NavMenu({
      * @returns {Element}
      */
     const menuParent = (props) => {
-        const {
-                url,
+        const
+            {url, ...propsWithoutUrl } = props,
+            {
                 key,
                 label,
                 type,
@@ -223,16 +224,23 @@ export default function NavMenu({
                 items,
                 wrapper:{label:labelWrapper = null, items:itemsWrapper = null} = {},
                 ...rest
-            } = props,
+            } = propsWithoutUrl,
             urlLabel = labelAsMenuLeaf({url:url, label: label, wrapper:labelWrapper}),
             isSupported = isOfType(supported.recursive?.[type]) != rejectedDataTypeName;
         
         try {
             if (!isSupported) {
-                return all.recursive[type]({...props, label:urlLabel, wrapper:itemsWrapper, depth:depth, templates:templates, styles:styles});
+                return all.recursive[type]({
+                    ...propsWithoutUrl,
+                    label       : urlLabel,
+                    wrapper     : itemsWrapper,
+                    depth       : depth,
+                    templates   : templates,
+                    styles      : styles
+                });
             }
 
-            const data = {...props, label:urlLabel, wrapper:itemsWrapper, force: {
+            const data = {...propsWithoutUrl, label:urlLabel, wrapper:itemsWrapper, force: {
                 string  : all.recursive[type],
                 array   : all.recursive[type][0],
                 boolean : null,
@@ -244,7 +252,10 @@ export default function NavMenu({
                 after   : afterTemplate(data),
             }[position] ?? wrapperTemplate(data);
         } catch (error) {
-            console.error(`Missing type/tag: "${type}". You should add the component as property into "templates.recursive.${type}"`)
+            console.error(
+                error,
+                `An error occured on type/tag: "${type}". Check "templates.recursive.${type}"`
+            );
             return (<></>);
         }
     };
@@ -267,7 +278,10 @@ export default function NavMenu({
         try {
             return wrapping(wrapper, all.plain[type]({...props, active:active, wrapper:wrapper}));
         } catch (ex) {
-            console.error(`Missing type/tag: "${type}". You should add the component as property into "templates.plain.${type}"`)
+            console.error(
+                error,
+                `An error occured on type/tag: "${type}". Check "templates.plain.${type}"`
+            );
             return (<></>);
         }
     };

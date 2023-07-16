@@ -4,7 +4,7 @@ import { Transition } from '@headlessui/react';
 
 const DropDownContext = createContext();
 
-const Dropdown = ({ children }) => {
+const Dropdown = ({ children, className = 'relative w-full' }) => {
     const [open, setOpen] = useState(false);
 
     const toggleOpen = () => {
@@ -13,19 +13,19 @@ const Dropdown = ({ children }) => {
 
     return (
         <DropDownContext.Provider value={{ open, setOpen, toggleOpen }}>
-            <div className="relative">{children}</div>
+            <div className={className}>{children}</div>
         </DropDownContext.Provider>
     );
 };
 
-const Trigger = ({ children }) => {
+const Trigger = ({ children, className = ''}) => {
     const { open, setOpen, toggleOpen } = useContext(DropDownContext);
 
     return (
         <>
-            <div onClick={toggleOpen}>{children}</div>
+            <div className={className} onClick={toggleOpen}>{children}</div>
 
-            {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>}
+            {open && <div className={className + " fixed inset-0 z-40"} onClick={() => setOpen(false)}></div>}
         </>
     );
 };
@@ -60,10 +60,10 @@ const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-whit
                 leaveTo="transform opacity-0 scale-95"
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
+                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses} rounded-md ring-1 ring-black ring-opacity-5 ${contentClasses}`}
                     onClick={() => setOpen(false)}
                 >
-                    <div className={`rounded-md ring-1 ring-black ring-opacity-5 ` + contentClasses}>{children}</div>
+                    {children}
                 </div>
             </Transition>
         </>
