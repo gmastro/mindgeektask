@@ -2,11 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Customizations\Composites\PornstarsComponent;
-use App\Customizations\Factories\CurlDownload;
-use App\Customizations\Factories\CurlExaminer;
-use App\Customizations\Factories\FileGetContentsDownload;
-use App\Customizations\Factories\GetHeadersExaminer;
+use App\Jobs\Pornhub\ProcessJob;
+use App\Models\DownloadedFiles;
 use App\Models\RemoteFeeds;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,13 +23,12 @@ class RemoteFeedsFactory extends Factory
     public function definition(): array
     {
         return [
+            'downloaded_file_id'=> DownloadedFiles::factory(),
             'source'            => fake()->unique()->url(),
             'is_active'         => fake()->boolean(),
             'examine_counter'   => fake()->randomNumber(5),
             'download_counter'  => fake()->randomNumber(3),
-            'process_handler'   => fake()->randomElement([PornstarsComponent::class, Carbon::class]),
-            'examine_handler'   => fake()->randomElement([CurlExaminer::class, GetHeadersExaminer::class]),
-            'download_handler'  => fake()->randomElement([CurlDownload::class, FileGetContentsDownload::class]),
+            'handle'            => fake()->randomElement([ProcessJob::class, Carbon::class]),
             'created_at'        => Carbon::now(),
             'updated_at'        => Carbon::now(),
         ];

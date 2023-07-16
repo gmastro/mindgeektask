@@ -18,7 +18,7 @@ class RemoteFeedDeleting
     /**
      * Create a new event instance.
      */
-    public function __construct(public RemoteFeeds $feed)
+    public function __construct(public RemoteFeeds $model)
     {
         //
     }

@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Events\RemoteFeedCreated;
 use App\Events\RemoteFeedDeleting;
-use App\Events\RemoteFeedEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class RemoteFeeds extends Model
 {
@@ -15,19 +19,30 @@ class RemoteFeeds extends Model
     protected static function boot()
     {
         parent::boot();
-        static::created(fn($model) => RemoteFeedEvent::dispatchIf(
+        static::created(fn ($model) => RemoteFeedCreated::dispatchIf(
             $model->is_active,
-            $model::withoutRelations()
+            $model->withoutRelations()
         ));
-        static::deleting(fn($model) => RemoteFeedDeleting::dispatch($model::withoutRelations('pornstars')));
+        static::deleting(fn ($model) => RemoteFeedDeleting::dispatch(
+            $model::withoutRelations('pornstars')
+        ));
     }
 
     public $fillable = [
+        'downloaded_file_id',
         'source',
-        'processes_handler',
-        'download_handler',
-        'examine_handler',
+        'handle',
     ];
+
+    public function downloaded(): BelongsTo
+    {
+        return $this->belongsTo(DownloadedFiles::class, 'downloaded_file_id');
+    }
+
+    public function downloaded_files(): HasManyThrough
+    {
+        return $this->hasManyThrough(DownloadedFiles::class, Thumbnails::class, 'remote_feed_id', 'id', 'thumbnail_id');
+    }
 
     public function pornstars(): HasMany
     {

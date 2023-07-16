@@ -1,20 +1,29 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Customizations\Adapters\CurlDownloadAdapter;
+use App\Customizations\Components\CurlComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Events\RemoteFeedEvent;
+use App\Jobs\Common\DownloadJob;
+use App\Jobs\Common\ThumbnailsJob;
 use App\Models\RemoteFeeds;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Bus;
 
 class ProcessRemoteFeeds implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public function uniqueId(): string
     {
@@ -24,36 +33,56 @@ class ProcessRemoteFeeds implements ShouldQueue
     /**
      * Execute the job.
      *
-     * The following steps should happen in the following order
-     * - Get all those sources defined within the database (in our case just one)
-     * - Make sure that the source is active
-     * - Examine the source
-     * - Increment examination counter of the feed
-     * - Update is_active flag in case that the link/source is invalid
-     * - Get a timestamp comparison between database's last update and source's last modification.
-     * - Proceed if last modified date is greater compared to the updated tuple value
-     * - Perform a "clean dowload" of all active and outdated sources.
-     *   As "clean download" implies, it will priorily remove the file from the filesystem, rather than replacing it.
-     * - Increment download counter after successful retrieval of the source content
-     * - Store sources into local disk 'downloads' named as an md5 hash of the source link (no-extension)
-     * - Process stored file (use tuple `process_handler` to generate a new instance of the proccessing class)
-     * - During the process:
-     *     - map data into batches
-     *     - remove data, files and cache from missing identifiers
-     *     - upsert data (create/update)
-     *     - create data for pivot tables after retrieving current content missing keys.
-     * 
-     * Examine
+     * Gets content from all those active feed sources
      */
     public function handle(): void
     {
-        RemoteFeeds::all()
-            ->reject(function ($feed): bool {
-                return $feed->is_active
-                    && (new ExamineComponent($feed))->execute();
-            })
-            ->map(function ($feed): void {
-                RemoteFeedEvent::dispatch($feed::withoutRelations(), true);
+        $batch = RemoteFeeds::all()
+            ->reject(fn ($model): bool => $model->is_active === false)
+            ->map(function ($model) {
+                // just a batch job
+                if ($model->handle === null) {
+                    return 'DownloadJob';
+                }
+
+                // inner chain within the batch
+                $class = $model->handle;
+                return ['DownloadJob', $class];
+
+                if ($model->handle === null) {
+                    return new DownloadJob($model);
+                }
+
+                // inner chain within the batch
+                $class = $model->handle;
+                return [
+                    new DownloadJob($model),
+                    new $class($model->id),
+                    new ThumbnailsJob($model->id)
+                ];
             });
+
+        // no jobs? bye!
+        if($batch === []) {
+            info("No jobs were found!");
+            return;
+        }
+        
+        Bus::batch($batch)
+            ->allowFailures()
+            ->onQueue('downloads')
+            ->dispatch();
+
+
+        // Bus::chain([
+        //     fn() => Bus::batch($batch)
+        //         ->allowFailures()
+        //         ->name('downloading-feeds')
+        //         ->onQueue('downloads')
+        //         ->dispatch(),
+        //     new ThumbnailsJob
+        // ])
+        // ->onQueue('downloads')
+        // ->dispatch();
     }
 }

@@ -110,7 +110,7 @@ return new class extends Migration
             $table = $this->tableDefault($table);
             $table
                 ->foreignId('pornstar_id')
-                ->constrained('pornstars', 'id', 'fk_pornstards_thumbnails_pornstars')
+                ->constrained('pornstars', 'id', 'fk_pornstars_thumbnails_pornstars')
                 ->cascadeOnDelete();
             $table
                 ->foreignId('thumbnail_id')

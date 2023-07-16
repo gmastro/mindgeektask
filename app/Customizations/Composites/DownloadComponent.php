@@ -1,51 +1,70 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Customizations\Composites;
 
-use App\Customizations\Factories\CurlDownload;
-use App\Customizations\Factories\FileGetContentsDownload;
-use App\Models\RemoteFeeds;
-use Illuminate\Support\Facades\DB;
+use App\Customizations\Adapters\CurlDownloadAdapter;
+use App\Customizations\Composites\interfaces\InterfaceShare;
+use App\Customizations\Traits\ShareTrait;
+use DomainException;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
+use OutOfBoundsException;
 
-class DownloadComponent implements InterfaceComponent
+/**
+ * Performs Download
+ *
+ * Right after a source is examined it downloads and stores the content
+ * For any failure either during download or storage it will throw an exception
+ * Once the file is created it will return filename, mime-type and fullpath.
+ */
+class DownloadComponent implements InterfaceShare
 {
-    private $storage;
-
-    /**
-     * Magic Constructor
-     *
-     * Instanciate the dowload class to transfer required content within local the filesystem.
-     * You may defined an alternative filesystem to store this file.
-     *
-     * @access  public
-     * @param   RemoteFeeds $feed
-     * @param   string $diskName Filesystem name to use
-     */
-    public function __construct(public RemoteFeeds $feed, string $diskName = 'downloads')
-    {
-        $this->storage = match($feed->download_handler) {
-            CurlDownload::class             => new CurlDownload($feed->source, Storage::disk($diskName)),
-            FileGetContentsDownload::class  => new FileGetContentsDownload($feed->source, Storage::disk($diskName)),
-            // your other handlers,
-            default                         => throw new \UnhandledMatchError("unkown dowload handler"),
-        };
-    }
+    use ShareTrait;
 
     /**
      * {@inheritdoc}
+     *
+     * @throws  OutOfBoundsException it the disk has not been acquired via ShareTrait
+     * @throws  InvalidArgumentException if the disk is not configured
+     * @throws  DomainException if the storage process failed
      */
     public function execute(): bool
     {
-        $this->storage->unlink();
-        $this->storage->download();
-        if($this->storage->exists() === false) {
-            return false;
+        /**
+         * @var     FilesystemManager $storage
+         */
+        $storage = Storage::disk($this->fetch('disk'));
+        $path = $storage->path('');
+
+        $examiner = $this->fetch('examine');
+        $download = new CurlDownloadAdapter($examiner, $path);
+        $response = $download->execute();
+
+        if ($response === false) {
+            info("Could not download content from source.", [
+                'errors'    => $download->getErrorBatch(),
+                'info'      => $examiner->getInfo(),
+                'filename'  => $download->getFilename(),
+            ]);
+
+            return $response;
+            // throw new DomainException(\strtr("Terminated with the following errors: {errorCodes}", [
+            //     '{errorCodes}' => \implode(", ", \array_keys($download->getErrorBatch()))
+            // ]));
         }
 
-        return DB::transaction(fn(): bool => $this->feed->save([
-            'download_counter' => $this->feed->download_counter + 1
-        ]));
+        $filename = \explode('/', $download->getFilename());
+        $this->transfer('model')
+            ->transfer('disk')
+            ->append([
+                'mime_type' => $examiner->getInfo()[$examiner::CONTENT_TYPE],
+                'fullpath'  => $download->getFilename(),
+                'filename'  => \end($filename),
+            ]);
+
+        return true;
     }
 }

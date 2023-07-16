@@ -4,9 +4,9 @@ namespace App\Providers;
 
 use App\Events\ChirpCreated;
 use App\Events\RemoteFeedDeleting;
-use App\Events\RemoteFeedEvent;
-use App\Listeners\RemoteFeedCleanupListener;
-use App\Listeners\RemoteFeedListener;
+use App\Events\RemoteFeedCreated;
+use App\Listeners\RemoteFeedCreatedListener;
+use App\Listeners\RemoteFeedDeletingListener;
 use App\Listeners\SendChirpCreatedNotifications;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -20,7 +20,6 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        // remove
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
@@ -28,10 +27,10 @@ class EventServiceProvider extends ServiceProvider
             SendChirpCreatedNotifications::class,
         ],
         RemoteFeedDeleting::class => [
-            RemoteFeedCleanupListener::class,
+            RemoteFeedDeletingListener::class,
         ],
-        RemoteFeedEvent::class => [
-            RemoteFeedListener::class,
+        RemoteFeedCreated::class => [
+            RemoteFeedCreatedListener::class,
         ],
     ];
 

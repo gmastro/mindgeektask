@@ -17,6 +17,15 @@
             <directory suffix=".php">./app</directory>
         </include>
     </source>
+    <coverage cacheDirectory="./tests/reports/cache"
+              includeUncoveredFiles="true"
+              pathCoverage="false"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="true">
+        <report>
+            <html outputDirectory="./tests/reports/html" lowUpperBound="50" highLowerBound="90"/>
+        </report>
+    </coverage>
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
