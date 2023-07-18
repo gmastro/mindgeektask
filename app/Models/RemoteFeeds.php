@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use App\Events\RemoteFeedCreated;
 use App\Events\RemoteFeedDeleting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,11 +29,21 @@ class RemoteFeeds extends Model
         ));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public $fillable = [
         'name',
         'downloaded_file_id',
         'source',
         'handle',
+    ];
+
+    /**
+     * {@inheritdoc}
+     */
+    protected $casts = [
+        'handle'        => AsArrayObject::class,
     ];
 
     public function downloaded(): BelongsTo
