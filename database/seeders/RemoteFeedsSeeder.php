@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Jobs\Common\ThumbnailsJob;
 use App\Jobs\Pornhub\ProcessJob;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -23,8 +24,9 @@ class RemoteFeedsSeeder extends Seeder
                 'downloaded_file_id'=> null,
                 'source'            => 'https://www.pornhub.com/files/json_feed_pornstars.json',
                 'is_active'         => true,
-                'handle'            => ProcessJob::class,
+                'handle'            => \json_encode([ProcessJob::class => [1], ThumbnailsJob::class => [1]]),
                 'created_at'        => Carbon::now(),
+                'updated_at'        => null,
             ]
         ], [
             'source'

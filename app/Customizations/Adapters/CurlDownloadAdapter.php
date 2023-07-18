@@ -11,6 +11,7 @@ use App\Customizations\Components\interfaces\InterfaceRemoteStream;
 use App\Customizations\Components\interfaces\InterfaceStorage;
 use App\Customizations\Traits\ErrorCodeTrait;
 use App\Customizations\Traits\FilenameTrait;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Downloads Content
@@ -58,6 +59,7 @@ class CurlDownloadAdapter implements InterfaceAdapter, InterfaceErrorCodes
     {
         $filename = $this->getFilename();
         if ($this->hasErrors() || \is_file($filename) === false) {
+            Log::error("either has errors, or could not download file", ['filename' => $filename]);
             return false;
         }
 

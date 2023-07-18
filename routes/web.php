@@ -76,13 +76,11 @@ Route::name('products.')->prefix('products')->group(function () {
             new DownloadJob($model),
         ];
 
-        if (\class_exists($model->handle)) {
-            $class = $model->handle;
-            $chain[] = new $class($model->id);
-        }
-
-        $chain[] = new ThumbnailsJob($model->id);
-        $chain[] = new CacheJob();
+        collect($model->handle)->map(function ($attributes, $class) use (&$chain) {
+            if (class_exists($class)) {
+                $chain[] = new $class(...$attributes);
+            }
+        });
 
         Bus::chain($chain)
             ->onQueue('downloads')
@@ -103,7 +101,10 @@ Route::name('products.')->prefix('products')->group(function () {
         $model->is_active = !$model->is_active;
         $model->save();
 
-        return Redirect::back()->with(['status' => 200, 'data' => 'toggle oeo' ]);
+        return Redirect::back()->with([
+            'status'    => 200,
+            'data'      => ['id' => $model->id, 'is_active' => $model->is_active],
+        ]);
     })->middleware(['auth', 'verified'])->name('toggle');
 });
 
