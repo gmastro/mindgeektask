@@ -1,5 +1,7 @@
 # Guide
 
+> **Temporarily here**: Will be moved into wiki
+
 This guide contains a list of bin commands to perform/check and utilize the framework.
 Additionally what am I supposed to do here, some muttering, whining and mumbling.
 
@@ -370,20 +372,46 @@ Back to [Home](#guide) - [Contents](#contents) - [Development](#developement)
 
 ## Run
 
-All the effort is time to come into fruition. To start the whole process
+All the effort is time to come into fruition. To start the whole process for the very first time.
+
+> **Note**: use `./vendor/bin/sail down --volumes` in case of an existing mysql lock.
+>           Yet, this will truncate all stored data so far.
 
 ```bash
-$ ./vendor/bin/sail up -d \
-  & ./vendor/bin/sail artisan migrate:fresh \
-  & ./vendor/bin/sail artisan db:seed \
-  & ./vendor/bin/sail artisan schedule:run \
-  & ./vendor/bin/sail npm run dev
+$ composer update
+  && cp .env.example .env
+  && ./vendor/bin/sail key:generate \
+  && ./vendor/bin/sail down --volumes \
+  && ./vendor/bin/sail up -d --build \
+  && ./vendor/bin/sail artisan storage:link \
+  && ./vendor/bin/sail artisan migrate:fresh --seed \
+#  && ./vendor/bin/sail artisan schedule:run \ # commented until there is a scheduler
+  && ./vendor/bin/sail npm install \
+  && ./vendor/bin/sail npm run dev
 ```
 
 Open your preferable browser and type `localhost` into url path
 
 The job should have already have started via scheduler.
 In case you wish to re-examine the results you may click on link `force-scheduler`
+
+
+
+To continue from an existing project
+
+```bash
+$ composer update
+  && cp .env.example .env
+  && ./vendor/bin/sail key:generate \
+  && ./vendor/bin/sail down --volumes \
+  && ./vendor/bin/sail up -d --build \
+  && ./vendor/bin/sail artisan storage:link \
+  && ./vendor/bin/sail artisan migrate:fresh --seed \
+#  && ./vendor/bin/sail artisan schedule:run \ # commented until there is a scheduler
+  && ./vendor/bin/sail npm install \
+  && ./vendor/bin/sail npm run dev
+
+```
 
 -----
 
