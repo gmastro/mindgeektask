@@ -6,12 +6,10 @@ namespace App\Listeners;
 use App\Customizations\Adapters\RedisFileCachingAdapter;
 use App\Events\RemoteFeedDeleting;
 use App\Models\DownloadedFiles;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 
-class RemoteFeedDeletingListener implements ShouldQueue
+class RemoteFeedDeletingListener
 {
     private function unset(?DownloadedFiles $model): void
     {
@@ -26,7 +24,7 @@ class RemoteFeedDeletingListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(RemoteFeedDeleting $event): void
+    public function handle(RemoteFeedDeleting $event)
     {
         $this->unset($event->model->downloaded);
         $collection = $event->model->downloaded_files;

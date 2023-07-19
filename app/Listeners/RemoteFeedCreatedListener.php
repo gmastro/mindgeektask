@@ -3,34 +3,32 @@
 namespace App\Listeners;
 
 use App\Events\RemoteFeedCreated;
-use App\Jobs\Common\DownloadJob;
-use App\Jobs\Common\ThumbnailsJob;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class RemoteFeedCreatedListener implements ShouldQueue
+class RemoteFeedCreatedListener
 {
     /**
      * Handle the event.
      */
     public function handle(RemoteFeedCreated $event)
     {
-        $chain = [new DownloadJob($event->model)];
-
-        if (\class_exists($event->model->handle)) {
-            $class = $event->model->handle;
-            $chain[] = new $class($event->model->id);
-            $chain[] = new ThumbnailsJob($event->model->id);
+        if ($event->model->chain->isEmpty()) {
+            return false;
         }
-
-        Bus::chain($chain)->dispatch();
+        
+        Bus::chain($event->model->chain)
+            ->onQueue('downloads')
+            ->dispatch();
     }
 
     public function failed(RemoteFeedCreated $event, Throwable $e)
     {
-        Log::error("Failed getting content for new feed", ['message' => $e->getMessage()]);
+        Log::error("Failed getting content for feed", [
+            'id'        => $event->model->id,
+            'source'    => $event->model->source,
+            'message'   => $e->getMessage()
+        ]);
     }
 }

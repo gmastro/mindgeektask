@@ -38,29 +38,8 @@ class ProcessRemoteFeeds implements ShouldQueue
     public function handle(): void
     {
         $batch = RemoteFeeds::all()
-            ->reject(fn ($model): bool => $model->is_active === false)
-            ->map(function ($model) {
-                // just a batch job
-                if ($model->handle === null) {
-                    return 'DownloadJob';
-                }
-
-                // inner chain within the batch
-                $class = $model->handle;
-                return ['DownloadJob', $class];
-
-                if ($model->handle === null) {
-                    return new DownloadJob($model);
-                }
-
-                // inner chain within the batch
-                $class = $model->handle;
-                return [
-                    new DownloadJob($model),
-                    new $class($model->id),
-                    new ThumbnailsJob($model->id)
-                ];
-            });
+            ->reject(fn ($model): bool => $model->is_active === false || $model->chain->isEmpty())
+            ->map(fn ($model) => $model->chain);
 
         // no jobs? bye!
         if($batch === []) {
