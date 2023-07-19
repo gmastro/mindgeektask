@@ -81,7 +81,7 @@ export default function Product({ auth, product }) {
             </p>
             <p className={styles.p}>
                 <b>Updated</b>
-                <span>{dayjs(updated_at).fromNow()}</span>
+                <span>{updated_at != null ? dayjs(updated_at).fromNow() : "-"}</span>
             </p>
         </div>
     );

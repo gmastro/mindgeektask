@@ -28,9 +28,9 @@ class RemoteFeedsFactory extends Factory
             'is_active'         => fake()->boolean(),
             'examine_counter'   => fake()->randomNumber(5),
             'download_counter'  => fake()->randomNumber(3),
-            'handle'            => '[]',
+            'handle'            => [],
             'created_at'        => Carbon::now(),
-            'updated_at'        => Carbon::now(),
+            'updated_at'        => null,
         ];
     }
 }

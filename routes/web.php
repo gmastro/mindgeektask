@@ -72,19 +72,11 @@ Route::name('products.')->prefix('products')->group(function () {
             Redirect::back()->with(['status' => 404, 'message' => 'These are not the droids you are looking for']);
         }
 
-        $chain = [
-            new DownloadJob($model),
-        ];
-
-        collect($model->handle)->map(function ($attributes, $class) use (&$chain) {
-            if (class_exists($class)) {
-                $chain[] = new $class(...$attributes);
-            }
-        });
-
-        Bus::chain($chain)
-            ->onQueue('downloads')
-            ->dispatch();
+        if ($model->chain->isEmpty() === false) {
+            Bus::chain($model->chain)
+                ->onQueue('downloads')
+                ->dispatch();
+        }
 
         return Redirect::back()->with(['status' => 200, 'message' => 'job dispatched']);
     })->middleware(['auth', 'verified'])->name('job');
