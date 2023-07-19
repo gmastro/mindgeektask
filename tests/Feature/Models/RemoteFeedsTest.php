@@ -8,7 +8,6 @@ use App\Events\RemoteFeedDeleting;
 use App\Jobs\Common\DownloadJob;
 use App\Listeners\RemoteFeedCreatedListener;
 use App\Listeners\RemoteFeedDeletingListener;
-use App\Models\DownloadedFiles;
 use App\Models\RemoteFeeds;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
