@@ -25,12 +25,10 @@ class RemoteFeeds extends Model
     protected static function boot()
     {
         parent::boot();
-        static::created(function ($model) {
-            RemoteFeedCreated::dispatchIf(
-                $model->is_active,
-                $model->withoutRelations()
-            );
-        });
+        static::created(fn ($model) => RemoteFeedCreated::dispatchIf(
+            $model->is_active,
+            $model->withoutRelations()
+        ));
         static::deleting(fn ($model) => RemoteFeedDeleting::dispatch(
             $model->withoutRelations('pornstars')
         ));
