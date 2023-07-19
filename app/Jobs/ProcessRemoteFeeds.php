@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Customizations\Adapters\CurlDownloadAdapter;
-use App\Customizations\Components\CurlComponent;
-use App\Customizations\Composites\ExamineComponent;
-use App\Events\RemoteFeedEvent;
-use App\Jobs\Common\DownloadJob;
-use App\Jobs\Common\ThumbnailsJob;
 use App\Models\RemoteFeeds;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -24,6 +19,7 @@ class ProcessRemoteFeeds implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use Batchable;
 
     public function uniqueId(): string
     {
@@ -39,7 +35,7 @@ class ProcessRemoteFeeds implements ShouldQueue
     {
         $batch = RemoteFeeds::all()
             ->reject(fn ($model): bool => $model->is_active === false || $model->chain->isEmpty())
-            ->map(fn ($model) => $model->chain);
+            ->map(fn ($model) => $model->chain->toArray());
 
         // no jobs? bye!
         if($batch === []) {
@@ -48,6 +44,7 @@ class ProcessRemoteFeeds implements ShouldQueue
         }
         
         Bus::batch($batch)
+            ->name('remote-feeds-scheduler')
             ->allowFailures()
             ->onQueue('downloads')
             ->dispatch();

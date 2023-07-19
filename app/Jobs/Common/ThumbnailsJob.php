@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\Common;
 
 use App\Models\Thumbnails;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,6 +22,7 @@ class ThumbnailsJob implements ShouldQueue, ShouldBeUnique
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use Batchable;
 
     public $timeout = 360;
 
