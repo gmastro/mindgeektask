@@ -47,8 +47,8 @@ class ThumbnailsTest extends TestCase
         $this->assertDatabaseCount('thumbnails', 5);
 
         $keys = $this->pornstars->modelKeys();
-        $collection->map(function ($model) use ($keys) {
-            $key = $keys[\intval($model->id%2 === 0)];
+        $collection->map(function ($model, $i) use ($keys) {
+            $key = $keys[\intval($i%2 === 0)];
             $pornstar = $this->pornstars->find($key);
             $model->pornstars()->sync($pornstar);
             $model->save();

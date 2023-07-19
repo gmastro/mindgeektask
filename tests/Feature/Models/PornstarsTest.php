@@ -48,15 +48,15 @@ class PornstarsTest extends TestCase
         $this->assertDatabaseCount('pornstars', 5);
 
         $keys = Thumbnails::all()->modelKeys();
-        Pornstars::all()->map(function ($model) use ($keys) {
-            $key = $keys[\intval($model->id%2 === 0)];
+        Pornstars::all()->map(function ($model, $i) use ($keys) {
+            $key = $keys[\intval($i%2 === 0)];
             $thumbnail = $this->thumbnails->find($key);
             $model->thumbnails()->sync($thumbnail);
             $model->save();
         });
 
-        $this->assertSame(3, PornstarsThumbnails::where(['thumbnail_id' => $keys[0]])->get()->count());
-        $this->assertSame(2, PornstarsThumbnails::where(['thumbnail_id' => $keys[1]])->get()->count());
+        $this->assertSame(2, PornstarsThumbnails::where(['thumbnail_id' => $keys[0]])->get()->count());
+        $this->assertSame(3, PornstarsThumbnails::where(['thumbnail_id' => $keys[1]])->get()->count());
 
         $sut = Pornstars::first();
 
