@@ -7,13 +7,14 @@ namespace App\Jobs;
 use App\Models\RemoteFeeds;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 
-class ProcessRemoteFeeds implements ShouldQueue
+class ProcessRemoteFeeds implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -34,11 +35,11 @@ class ProcessRemoteFeeds implements ShouldQueue
     public function handle(): void
     {
         $batch = RemoteFeeds::all()
-            ->reject(fn ($model): bool => $model->is_active === false || $model->chain->isEmpty())
+            ->filter(fn ($model): bool => $model->is_active && $model->chain->isNotEmpty())
             ->map(fn ($model) => $model->chain->toArray());
 
         // no jobs? bye!
-        if($batch === []) {
+        if ($batch === []) {
             info("No jobs were found!");
             return;
         }
@@ -48,17 +49,5 @@ class ProcessRemoteFeeds implements ShouldQueue
             ->allowFailures()
             ->onQueue('downloads')
             ->dispatch();
-
-
-        // Bus::chain([
-        //     fn() => Bus::batch($batch)
-        //         ->allowFailures()
-        //         ->name('downloading-feeds')
-        //         ->onQueue('downloads')
-        //         ->dispatch(),
-        //     new ThumbnailsJob
-        // ])
-        // ->onQueue('downloads')
-        // ->dispatch();
     }
 }

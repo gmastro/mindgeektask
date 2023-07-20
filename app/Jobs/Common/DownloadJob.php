@@ -8,6 +8,8 @@ use App\Customizations\Composites\Composite;
 use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Composites\DownloadedFilesCreateComponent;
 use App\Customizations\Composites\ExamineComponent;
+use App\Exceptions\DownloadException;
+use Exception;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -15,6 +17,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -83,20 +86,30 @@ class DownloadJob implements ShouldQueue, ShouldBeUnique
 
     public function handle()
     {
+        $isNotCancelled = true;
         Redis::throttle('downloads')->allow(500)->every(60)->block(60)->then(
-            fn() => (new Composite(
-                collect([
+            function() use (&$isNotCancelled) {
+                $isNotCancelled = (new Composite(collect([
                     new ExamineComponent(),
                     new DownloadComponent(),
                     new DownloadedFilesCreateComponent(),
-                ]),
-                (object) $this->attributes
-            ))->execute()
+                ]), (object) $this->attributes))
+                ->execute();
+            }
         );
+
+        if ($isNotCancelled === false) {
+            throw new DownloadException("Some conditions failed, any bus::chain job should terminate");
+        }
     }
 
     public function failed(Throwable $e)
     {
         Log::error($e->getMessage(), ['attributes' => $this->attributes]);
+    }
+
+    public function middleware(): array
+    {
+        return [new SkipIfBatchCancelled];
     }
 }

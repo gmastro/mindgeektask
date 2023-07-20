@@ -18,6 +18,10 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
+    protected $dontReport = [
+        DownloadException::class
+    ];
+
     /**
      * Register the exception handling callbacks for the application.
      */
