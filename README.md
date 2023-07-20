@@ -107,15 +107,27 @@ Go to: [Top](#readme) - [Contents](#contents)
 
 ### Scheduler
 
-> **Note**: This part is still under development, thus it will not perform as is described. Added into this `README` for future reference
-
-To start the scheduler
+Before starting the scheduler check when each and every job will occur.
+The example lists all cronjobs which will happen
 
 ```bash
-$ ./vendor/bin/sail artisan schedule:run
+$ ./vendor/bin/sail artisan schedule:list
+  24 *  * * *  truncate -s 0 ./storage/logs/laravel.log  Next Due: 56 seconds from now
+  0  *  * * *  ./vendor/bin/sail artisan queue:prune-failed --hours=0  Next Due: 36 minutes from now
+  0  *  * * *  ./vendor/bin/sail artisan queue:prune-batches --hours=0  Next Due: 36 minutes from now
+  0  21 * * *  process.remote.feeds.job.daily.at.21.00 . Next Due: 14 hours from now
 ```
 
-Once the scheduler is up, it will start sending requests towards all feed sources.
+If you are happy with those settings you **MAY** start the scheduler
+
+```bash
+$ ./vendor/bin/sail artisan schedule:work
+```
+
+Once the scheduler is up, it will start sending requests towards all feed sources at `21:18:51` daily.
+Other scheduler tasks are to truncate `laravel.log`, failed/cancelled jobs and batch jobs hourly.
+
+> **Note**:    To change scheduler settings open file `./app/Console/Kernel.php`
 
 -----
 Go to: [Top](#readme) - [Contents](#contents) - [Start](#start)
