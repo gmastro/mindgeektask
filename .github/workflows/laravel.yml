@@ -41,9 +41,13 @@ jobs:
       run: |
         mkdir -p database
         touch database/database.sqlite
+
+    - name: Migrate
+      run: php artisan migrate:fresh --seed
+
     - name: Execute tests (Unit and Feature tests) via PHPUnit
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
-#       run: vendor/bin/phpunit
-      run: vendor/bin/sail test
+      run: vendor/bin/phpunit
+
