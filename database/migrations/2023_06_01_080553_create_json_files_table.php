@@ -105,7 +105,7 @@ return new class extends Migration
                 ->unique(['url', 'media'], 'unq_thumbnails_um');
         });
 
-        Schema::create('thumbnails', function (Blueprint $table) {
+        Schema::connection('mysql')->create('thumbnails', function (Blueprint $table) {
             $table = $this->tableDefault($table);
             $table
                 ->id();
@@ -121,17 +121,9 @@ return new class extends Migration
             $table
                 ->integer('height')
                 ->default(344);
-            // default MySQL, MariaDB
-            try {
-                $table
-                    ->set('media', ['pc','mobile','tablet'])
-                    ->default('pc');
-            // sqlite3
-            } catch (Throwable $e) {
-                $table
-                    ->string('media', 64)
-                    ->default('pc');
-            }
+            $table
+                ->set('media', ['pc','mobile','tablet'])
+                ->default('pc');
             $table
                 ->timestamps();
             $table
