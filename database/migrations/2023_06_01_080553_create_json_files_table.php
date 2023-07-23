@@ -121,9 +121,17 @@ return new class extends Migration
             $table
                 ->integer('height')
                 ->default(344);
-            $table
-                ->set('media', ['pc','mobile','tablet'])
-                ->default('pc');
+            // default MySQL, MariaDB
+            try {
+                $table
+                    ->set('media', ['pc','mobile','tablet'])
+                    ->default('pc');
+            // sqlite3
+            } catch (Throwable $e) {
+                $table
+                    ->string('media', 64)
+                    ->default('pc');
+            }
             $table
                 ->timestamps();
             $table
