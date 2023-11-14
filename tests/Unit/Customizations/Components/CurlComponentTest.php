@@ -33,16 +33,19 @@ class CurlComponentTest extends TestCase
     public static function providerUrlsSmall(): array
     {
         return [
-            'hamilton'  => ["https://www.hamiltonstaracademy.com//images/frontpage/portfolio/fullsize/Screenshot1.png"],
-            'example'   => ["https://example.com"],
+            'sample-json'   => ["https://freetestdata.com/wp-content/uploads/2023/04/1.05KB_JSON-File_FreeTestData.json"],
+            'sample-rdf'    => ['https://web.resource.org/rss/1.0/schema.rdf'],
+            'sample-atom'   => ['www.intertwingly.net/blog/index.atom'],
+            'sample-csv'    => ['https://cdn.wsform.com/wp-content/uploads/2020/06/industry.csv'],
+            'sample-png'    => ["https://www.hamiltonstaracademy.com//images/frontpage/portfolio/fullsize/Screenshot1.png"],
+            'sample-html'   => ["https://example.com"],
         ];
     }
 
     public static function providerUrlsLarge(): array
     {
         return [
-            'pornhub'   => ["https://www.pornhub.com/files/json_feed_pornstars.json"],
-            'google'    => ["https://google.com"],
+            'google'        => ["https://google.com"],
         ];
     }
 
@@ -55,10 +58,14 @@ class CurlComponentTest extends TestCase
     public static function providerResults(): array
     {
         return [
-            'hamilton'  => [200, 'image/png'],
-            'example'   => [200, 'text/html'],
-            'pornhub'   => [200, 'application/json'],
-            'google'    => [301, 'text/html'],
+            'sample-json'   => [200, 'application/json'],
+            // this one could also be `application/rdf+xml`
+            'sample-rdf'    => [200, 'text/xml'],
+            'sample-atom'   => [200, 'application/atom+xml'],
+            'sample-csv'    => [200, 'text/csv'],
+            'sample-png'    => [200, 'image/png'],
+            'sample-html'   => [200, 'text/html'],
+            'google'        => [301, 'text/html'],
         ];
     }
 

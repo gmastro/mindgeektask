@@ -36,17 +36,32 @@ class FilenameTraitTest extends TestCase
         $this->assertSame($filename, $sut->getFilename());
     }
 
-    public static function providerUrls(): array
+    public static function providerLinks(): array
     {
         return [
             'hamilton-link-filename'        => ["https://www.hamiltonstaracademy.com/images/frontpage/portfolio/fullsize/Screenshot1.png", "Screenshot1.png"],
             "place-hold-it-png"             => ["https://place-hold.it/244x344/666321/123666.png&text=lorem-ipsum&bold&italic&fontsize=11", "123666.png&text=lorem-ipsum&bold&italic&fontsize=11.png"],
             "place-hold-it-jpg"             => ["https://place-hold.it/244x344/666321/123666.jpg&text=lorem-ipsum&bold&italic&fontsize=11", "123666.jpg&text=lorem-ipsum&bold&italic&fontsize=11.jpg"],
-            "json-sample"                   => ["https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json", "64KB.json"],
             'example'                       => ["https://example.com", \md5("https://example.com/") . ".html"],
-            'pornhub'                       => ["https://www.pornhub.com/files/json_feed_pornstars.json", "json_feed_pornstars.json"],
             'google'                        => ["https://www.google.com/", \md5("https://www.google.com/") . ".html"],
         ];
+    }
+
+    public static function providerSamples(): array
+    {
+        return [
+            "sample-json"   => ["https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json", "64KB.json"],
+            // haven't found a sample link yet containing application/rdf+xml
+            'sample-rdf'    => ['https://web.resource.org/rss/1.0/schema.rdf', 'schema.rdf.xml'],
+            'sample-atom'   => ['www.intertwingly.net/blog/index.atom', 'index.atom'],
+            'sample-csv'    => ['https://cdn.wsform.com/wp-content/uploads/2020/06/industry.csv', 'industry.csv'],
+            "sample-xml"    => ['https://www.learningcontainer.com/wp-content/uploads/2020/03/Sample-XML-Files.xml', 'Sample-XML-Files.xml'],
+        ];
+    }
+
+    public static function providerUrls(): array
+    {
+        return self::providerLinks() + self::providerSamples();
     }
 
     #[Group('success')]

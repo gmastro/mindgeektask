@@ -41,6 +41,8 @@ trait FilenameTrait
      * @access  private
      * @return  string
      * @throws  UnhandledMatchError when the content type is now amongst servicable cases
+     * @todo    Move content types and file extensions as constants.
+     * @todo    Map content types and file extensions as constant array
      */
     protected function fromRemoteStream(InterfaceRemoteStream $stream): string
     {
@@ -48,12 +50,17 @@ trait FilenameTrait
         $contentType = \explode(';', $info[$stream::CONTENT_TYPE])[0];
 
         $extension = match ($contentType) {
+            'application/atom+xml'      => 'atom',
             'application/json'          => 'json',
-            'text/xml'                  => 'xml',
-            'text/html'                 => 'html',
+            'application/rss+xml'       => 'rss',
+            'application/rdf+xml'       => 'rdf',
+            'application/xml'           => 'xml',
             'image/png'                 => 'png',
             'image/jpg', 'image/jpeg'   => 'jpg',
             'image/gif'                 => 'gif',
+            'text/xml'                  => 'xml',
+            'text/html'                 => 'html',
+            'text/csv'                  => 'csv',
             default                     => throw new UnhandledMatchError(\sprintf(
                 "Not supported content type `%s` for download",
                 $contentType
