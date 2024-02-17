@@ -89,7 +89,7 @@ Go to: [Top](#readme) - [Contents](#contents)
 Start with the docker container (on the background)
 
 ```bash
-$ ./vendor/bin/sail up -d \
+$ ./vendor/bin/sail up -d
 ```
 
 Then

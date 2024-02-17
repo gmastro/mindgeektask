@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Customizations\Traits;
 
 use App\Customizations\Components\interfaces\InterfaceRemoteStream;
+use App\Customizations\Proxies\interfaces\InterfaceFeed;
 use UnhandledMatchError;
 
 /**
@@ -50,18 +51,18 @@ trait FilenameTrait
         $contentType = \explode(';', $info[$stream::CONTENT_TYPE])[0];
 
         $extension = match ($contentType) {
-            'application/atom+xml'      => 'atom',
-            'application/json'          => 'json',
-            'application/rss+xml'       => 'rss',
-            'application/rdf+xml'       => 'rdf',
-            'application/xml'           => 'xml',
-            'image/png'                 => 'png',
-            'image/jpg', 'image/jpeg'   => 'jpg',
-            'image/gif'                 => 'gif',
-            'text/xml'                  => 'xml',
-            'text/html'                 => 'html',
-            'text/csv'                  => 'csv',
-            default                     => throw new UnhandledMatchError(\sprintf(
+            InterfaceFeed::APPLICATION_ATOM_XML                 => InterfaceFeed::EXTENSION_ATOM,
+            InterfaceFeed::APPLICATION_JSON                     => InterfaceFeed::EXTENSION_JSON,
+            InterfaceFeed::APPLICATION_RSS_XML                  => InterfaceFeed::EXTENSION_RSS,
+            InterfaceFeed::APPLICATION_RDF_XML                  => InterfaceFeed::EXTENSION_RDF,
+            InterfaceFeed::APPLICATION_XML                      => InterfaceFeed::EXTENSION_XML,
+            InterfaceFeed::TEXT_XML                             => InterfaceFeed::EXTENSION_XML,
+            InterfaceFeed::TEXT_HTML                            => InterfaceFeed::EXTENSION_HTML,
+            InterfaceFeed::TEXT_CSV                             => InterfaceFeed::EXTENSION_CSV,
+            InterfaceFeed::IMAGE_JPG, InterfaceFeed::IMAGE_JPEG => InterfaceFeed::EXTENSION_JPG,
+            InterfaceFeed::IMAGE_PNG                            => InterfaceFeed::EXTENSION_PNG,
+            InterfaceFeed::IMAGE_GIF                            => InterfaceFeed::EXTENSION_GIF,
+            default                                             => throw new UnhandledMatchError(\sprintf(
                 "Not supported content type `%s` for download",
                 $contentType
             )),
