@@ -34,6 +34,40 @@ use App\Customizations\Components\interfaces\InterfaceExtensions;
 interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceContentTypes
 {
     /**
+     * Field Names Appearence Flags
+     *
+     * Flag for all those attributes that appeared based on the given protocol
+     *
+     * @access  public
+     * @static
+     * @var     bool REQUIRED
+     */
+    public const REQUIRED = true;
+
+    /**
+     * Field Names Appearence Flags
+     *
+     * Flag for all those attributes that appeared based on the given protocol
+     *
+     * @access  public
+     * @static
+     * @var     bool OPTIONAL
+     */
+    public const OPTIONAL = null;
+
+    /**
+     * Field Names Appearence Flags
+     *
+     * Flag for all those attributes that appeared based on the given protoco.
+     * Forbidden flag, also covers removed via deprication cases.
+     *
+     * @access  public
+     * @static
+     * @var     bool FORBIDDEN
+     */
+    public const FORBIDDEN = false;
+
+    /**
      * Supported Extension To Content Type Mapping
      *
      * Holds supported relations of existing supersets(extensions) pointing towards related content types.
@@ -71,6 +105,19 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
         self::EXTENSION_JSON    => [
             self::APPLICATION_JSON      => null,
         ],
+    ];
+
+    /**
+     * 
+     */
+    public const PURE = [
+        self::APPLICATION_ATOM_XML  => self::EXTENSION_ATOM,
+        self::APPLICATION_JSON      => self::EXTENSION_JSON,
+        self::APPLICATION_RDF_XML   => self::EXTENSION_RDF,
+        self::APPLICATION_RSS_XML   => self::EXTENSION_RSS,
+        self::APPLICATION_XML       => self::EXTENSION_XML,
+        self::TEXT_CSV              => self::EXTENSION_CSV,
+        self::TEXT_XML              => self::EXTENSION_XML,
     ];
 
     /**

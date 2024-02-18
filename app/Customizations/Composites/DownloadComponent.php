@@ -51,13 +51,11 @@ class DownloadComponent implements InterfaceShare
             ]);
 
             return $response;
-            // throw new DomainException(\strtr("Terminated with the following errors: {errorCodes}", [
-            //     '{errorCodes}' => \implode(", ", \array_keys($download->getErrorBatch()))
-            // ]));
         }
 
         $filename = \explode('/', $download->getFilename());
-        $this->transfer('model')
+        $this
+            ->transfer('model')
             ->transfer('disk')
             ->append([
                 'mime_type' => $examiner->getInfo()[$examiner::CONTENT_TYPE],

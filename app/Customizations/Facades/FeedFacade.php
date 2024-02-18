@@ -20,13 +20,13 @@ namespace App\Customizations\Facades;
 use App\Customizations\Components\interfaces\InterfaceContentTypes;
 use App\Customizations\Components\AtomFeed;
 use App\Customizations\Components\CsvFeed;
-use App\Customizations\Components\HtmlFeed;
 use App\Customizations\Components\JsonFeed;
 use App\Customizations\Components\RdfFeed;
 use App\Customizations\Components\RssFeed;
 use App\Customizations\Components\XmlFeed;
 use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
+use Illuminate\Support\Arr;
 
 /**
  * Feed Facade
@@ -41,6 +41,27 @@ use App\Customizations\Proxies\interfaces\InterfaceFeed;
 class FeedFacade
 {
     /**
+     * File Info
+     *
+     * Extract information from downloaded file
+     *
+     * @access  public
+     * @return  array<string, string|object>
+     */
+    private function info(DownloadComponent $component): array
+    {
+        $share = $component->share();
+        $extension = \explode('.', $share->filename);
+
+        return [
+            'share'         => $share,
+            'extension'     => \end($extension),
+            'contentType'   => $share->mime_type,
+            'mimeType'      => \explode(';', $share->mime_type)[0],
+        ];
+    }
+
+    /**
      * Converts Content
      *
      * This part behaves as a proxy, it will gather the information from the file and then convert it to the associative
@@ -54,31 +75,31 @@ class FeedFacade
      */
     public function convertor(DownloadComponent $component): ?InterfaceFeed
     {
-        $share = $component->share();
-
-        $extension = \explode('.', $share->filename);
-        $extension = \end($extension);
+        [
+            'share'     => $share,
+            'extension' => $extension,
+            'mimeType'  => $mimeType
+        ] = $this->info($component);
 
         $contentTypes = InterfaceFeed::SUPPORTED[$extension] ?? [];
 
-        if ($contentTypes === []) {
+        if ([] === $contentTypes && false === Arr::has($contentTypes, $mimeType)) {
             return null;
         }
 
-        $contentType = $contentTypes[$share->mime_type] ?? null;
-
-        if ($contentType === null) {
-            return null;
+        $isPure = (true === Arr::has(InterfaceFeed::PURE, $mimeType) && InterfaceFeed::PURE[$mimeType] === $extension);
+        
+        if (false === $isPure) {
+            $mimeType = \array_flip(InterfaceFeed::PURE)[$extension];
         }
 
-        return match($contentType) {
+        return match($mimeType) {
             InterfaceContentTypes::APPLICATION_JSON                                 => new JsonFeed($share),
             InterfaceContentTypes::APPLICATION_ATOM_XML                             => new AtomFeed($share),
             InterfaceContentTypes::APPLICATION_RSS_XML                              => new RssFeed($share),
             InterfaceContentTypes::APPLICATION_RDF_XML                              => new RdfFeed($share),
             InterfaceContentTypes::TEXT_CSV                                         => new CsvFeed($share),
             InterfaceContentTypes::APPLICATION_XML, InterfaceContentTypes::TEXT_XML => new XmlFeed($share),
-            InterfaceContentTypes::TEXT_HTML                                        => new HtmlFeed($share),
             default                                                                 => null,
         };
     }

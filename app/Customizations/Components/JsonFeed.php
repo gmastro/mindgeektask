@@ -31,10 +31,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class JsonFeed implements InterfaceFeed
 {
-    public const REQUIRED = true;
-
-    public const OPTIONAL = null;
-
     /**
      * Authors Property
      *
@@ -121,27 +117,27 @@ class JsonFeed implements InterfaceFeed
      *          validate and verify the content.
      */
     public const STRUCTURE = [
-        self::FIELD_VERSION                               => [self::REQUIRED, 'string'],
-        self::FIELD_TITLE                                 => [self::REQUIRED, 'string'],
-        self::FIELD_HOME_PAGE_URL                         => [self::OPTIONAL, 'string'],
-        self::FIELD_FEED_URL                              => [self::OPTIONAL, 'string'],
-        self::FIELD_DESCRIPTION                           => [self::OPTIONAL, 'string'],
-        self::FIELD_USER_COMMENT                          => [self::OPTIONAL, 'string'],
-        self::FIELD_NEXT_URL                              => [self::OPTIONAL, 'string'],
-        self::FIELD_ICON                                  => [self::OPTIONAL, 'string'],
-        self::FIELD_FAVICON                               => [self::OPTIONAL, 'string'],
-        self::FIELD_LANGUAGE                              => [self::OPTIONAL, 'string'],
-        self::FIELD_EXPIRED                               => [self::OPTIONAL, 'bool'],
-        self::FIELD_HUBS                                  => [self::OPTIONAL, 'object[]', self::HUBS],
-        self::FIELD_ITEMS                                 => [self::REQUIRED, 'object[]', self::ITEMS]
+        self::FIELD_VERSION         => [self::REQUIRED, 'string'],
+        self::FIELD_TITLE           => [self::REQUIRED, 'string'],
+        self::FIELD_HOME_PAGE_URL   => [self::OPTIONAL, 'string'],
+        self::FIELD_FEED_URL        => [self::OPTIONAL, 'string'],
+        self::FIELD_DESCRIPTION     => [self::OPTIONAL, 'string'],
+        self::FIELD_USER_COMMENT    => [self::OPTIONAL, 'string'],
+        self::FIELD_NEXT_URL        => [self::OPTIONAL, 'string'],
+        self::FIELD_ICON            => [self::OPTIONAL, 'string'],
+        self::FIELD_FAVICON         => [self::OPTIONAL, 'string'],
+        self::FIELD_LANGUAGE        => [self::OPTIONAL, 'string'],
+        self::FIELD_EXPIRED         => [self::OPTIONAL, 'bool'],
+        self::FIELD_HUBS            => [self::OPTIONAL, 'object[]', self::HUBS],
+        self::FIELD_ITEMS           => [self::REQUIRED, 'object[]', self::ITEMS]
     ];
 
     public const STRUCTURE_1_0 = [
-        'author'                               => [self::OPTIONAL, 'object', self::AUTHORS],
+        self::FIELD_AUTHOR  => [self::OPTIONAL, 'object', self::AUTHORS],
     ];
 
     public const STRUCTURE_1_1 = [
-        'authors'                               => [self::OPTIONAL, 'object[]', self::AUTHORS],
+        self::FIELD_AUTHORS => [self::OPTIONAL, 'object[]', self::AUTHORS],
     ];
 
     /**
@@ -156,18 +152,18 @@ class JsonFeed implements InterfaceFeed
      */
     public const VERSIONS = [
         "https://www.jsonfeed.org/version/1.1/" => [
-            'version'                               => [self::REQUIRED, 'string'],
-            'title'                                 => [self::REQUIRED, 'string'],
-            'home_page_url'                         => [self::OPTIONAL, 'string'],
-            'feed_url'                              => [self::OPTIONAL, 'string'],
-            'description'                           => [self::OPTIONAL, 'string'],
-            'user_comment'                          => [self::OPTIONAL, 'string'],
-            'next_url'                              => [self::OPTIONAL, 'string'],
-            'icon'                                  => [self::OPTIONAL, 'string'],
-            'favicon'                               => [self::OPTIONAL, 'string'],
-            'authors'                               => [self::OPTIONAL, 'object[]', self::AUTHORS],
-            'language'                              => [self::OPTIONAL, 'string'],
-            'expired'                               => [self::OPTIONAL, 'bool'],
+            self::FIELD_VERSION                     => [self::REQUIRED, 'string'],
+            self::FIELD_TITLE                       => [self::REQUIRED, 'string'],
+            self::FIELD_HOME_PAGE_URL               => [self::OPTIONAL, 'string'],
+            self::FIELD_FEED_URL                    => [self::OPTIONAL, 'string'],
+            self::FIELD_DESCRIPTION                 => [self::OPTIONAL, 'string'],
+            self::FIELD_USER_COMMENT                => [self::OPTIONAL, 'string'],
+            self::FIELD_NEXT_URL                    => [self::OPTIONAL, 'string'],
+            self::FIELD_ICON                        => [self::OPTIONAL, 'string'],
+            self::FIELD_FAVICON                     => [self::OPTIONAL, 'string'],
+            self::FIELD_AUTHORS                     => [self::OPTIONAL, 'object[]', self::AUTHORS],
+            self::FIELD_LANGUAGE                    => [self::OPTIONAL, 'string'],
+            self::FIELD_EXPIRED                     => [self::OPTIONAL, 'bool'],
 
         ],
     ];

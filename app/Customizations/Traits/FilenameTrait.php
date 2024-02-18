@@ -42,8 +42,6 @@ trait FilenameTrait
      * @access  private
      * @return  string
      * @throws  UnhandledMatchError when the content type is now amongst servicable cases
-     * @todo    Move content types and file extensions as constants.
-     * @todo    Map content types and file extensions as constant array
      */
     protected function fromRemoteStream(InterfaceRemoteStream $stream): string
     {
