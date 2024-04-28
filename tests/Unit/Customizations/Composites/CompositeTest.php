@@ -7,6 +7,7 @@ namespace Tests\Unit\Customizations\Composites;
 use App\Customizations\Composites\Composite;
 use App\Customizations\Composites\interfaces\InterfaceComposite;
 use App\Customizations\Composites\interfaces\InterfaceShare;
+use App\Customizations\Traits\ReflectionTrait;
 use App\Customizations\Traits\ShareTrait;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -15,12 +16,13 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Tests\TestCase;
-use UnhandledMatchError;
 
 #[CoversClass(Composite::class)]
 #[UsesClass(ShareTrait::class)]
 class CompositeTest extends TestCase
 {
+    use ReflectionTrait;
+
     public static function providerEmpty(): array
     {
         return [
@@ -206,12 +208,11 @@ class CompositeTest extends TestCase
     #[Group('execute')]
     public function test_exception_mode_execute(): void
     {
-        $this->expectException(UnhandledMatchError::class);
+        $this->expectException(\UnhandledMatchError::class);
         $this->expectExceptionMessage("Available modes [queue|stack]");
         $sut = new Composite(collect());
-        $property   = new \ReflectionProperty($sut, 'mode');
-        $property->setAccessible(true);
-        $property->setValue($sut, 'foobar');
+        
+        $this->propertySet($sut, 'mode', 'foobar');
         $sut->execute();
     }
 

@@ -50,6 +50,7 @@ trait FilenameTrait
 
         $extension = match ($contentType) {
             InterfaceFeed::APPLICATION_ATOM_XML                 => InterfaceFeed::EXTENSION_ATOM,
+            InterfaceFeed::APPLICATION_FEED_JSON                => InterfaceFeed::EXTENSION_JSON,
             InterfaceFeed::APPLICATION_JSON                     => InterfaceFeed::EXTENSION_JSON,
             InterfaceFeed::APPLICATION_RSS_XML                  => InterfaceFeed::EXTENSION_RSS,
             InterfaceFeed::APPLICATION_RDF_XML                  => InterfaceFeed::EXTENSION_RDF,

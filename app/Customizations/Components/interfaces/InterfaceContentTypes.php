@@ -94,6 +94,17 @@ interface InterfaceContentTypes
      *
      * @access  public
      * @static
+     * @var     string APPLICATION_FEED_JSON
+     */
+    public const APPLICATION_FEED_JSON = 'application/feed+json';
+
+    /**
+     * Content Type Property
+     *
+     * Supported Content Type for feeds
+     *
+     * @access  public
+     * @static
      * @var     string TEXT_XML
      */
     public const TEXT_XML = 'text/xml';
