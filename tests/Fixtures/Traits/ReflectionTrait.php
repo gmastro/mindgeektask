@@ -15,7 +15,7 @@
 
 declare(strict_types=1);
 
-namespace App\Customizations\Traits;
+namespace Tests\Fixtures\Traits;
 
 /**
  * Error Code Trait
@@ -38,7 +38,7 @@ trait ReflectionTrait
      * @param   \ReflectionProperty|\ReflectionMethod $reflection
      * @return  \ReflectionProperty|\ReflectionMethod
      */
-    final private function setAccessibility(
+    private function setAccessibility(
         \ReflectionProperty|\ReflectionMethod $reflection
     ): \ReflectionProperty|\ReflectionMethod {
         if (false === $reflection->isPublic()) {
