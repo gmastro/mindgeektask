@@ -83,11 +83,12 @@ class FeedFacade
 
         $contentTypes = InterfaceFeed::SUPPORTED[$extension] ?? [];
 
-        if ([] === $contentTypes && false === Arr::has($contentTypes, $mimeType)) {
+        if([] === $contentTypes && false === Arr::has($contentTypes, $mimeType)) {
             return null;
         }
 
-        $isPure = (true === Arr::has(InterfaceFeed::PURE, $mimeType) && InterfaceFeed::PURE[$mimeType] === $extension);
+        $isPure = (true === Arr::has(InterfaceFeed::PURE, $mimeType)
+            && InterfaceFeed::PURE[$mimeType] === $extension);
         
         if (false === $isPure) {
             $mimeType = \array_flip(InterfaceFeed::PURE)[$extension];

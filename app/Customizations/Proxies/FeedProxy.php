@@ -48,7 +48,7 @@ final class FeedProxy implements InterfaceProxy
      */
     public function __construct(private InterfaceFeed $feed)
     {
-        
+        // nothing here
     }
 
     /**

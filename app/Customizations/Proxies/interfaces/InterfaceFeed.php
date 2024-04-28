@@ -34,38 +34,85 @@ use App\Customizations\Components\interfaces\InterfaceExtensions;
 interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceContentTypes
 {
     /**
-     * Field Names Appearence Flags
+     * Field Appearence States
      *
      * Flag for all those attributes that appeared based on the given protocol
      *
      * @access  public
      * @static
-     * @var     bool REQUIRED
+     * @var     string REQUIRED
      */
-    public const REQUIRED = true;
+    public const IS_REQUIRED = 'required';
 
     /**
-     * Field Names Appearence Flags
+     * Field Appearence States
      *
      * Flag for all those attributes that appeared based on the given protocol
      *
      * @access  public
      * @static
-     * @var     bool OPTIONAL
+     * @var     string OPTIONAL
      */
-    public const OPTIONAL = null;
+    public const IS_OPTIONAL = 'optional';
 
     /**
-     * Field Names Appearence Flags
+     * Field Appearence States
+     *
+     * Either one of the selected fields.
+     * The alternatives of this selection have to be defined within {@see InterfaceFeed::SET}
+     *
+     * @access  public
+     * @static
+     * @var     string SELECTION
+     */
+    public const IS_SELECTION = 'selection';
+
+    /**
+     * Field Appearence States
+     *
+     * When the appeared field **SHOULD NOT** co-exist with other fields.
+     * This flag is complementary by {@see InterfaceFeed::SET}
+     *
+     * @access  public
+     * @static
+     * @var     string IS_EXCLUSIVE
+     */
+    public const IS_EXCLUSIVE = 'exclusive';
+
+    /**
+     * Field Appearence States
+     *
+     * Whether to ignore this field, once a given version is reached.
+     *
+     * @access  public
+     * @static
+     * @var     string IS_DEPRECATED
+     */
+    public const IS_DEPRECATED = 'deprecated';
+
+    /**
+     * Field With Children
      *
      * Flag for all those attributes that appeared based on the given protoco.
      * Forbidden flag, also covers removed via deprication cases.
      *
      * @access  public
      * @static
-     * @var     bool FORBIDDEN
+     * @var     string FORBIDDEN
      */
-    public const FORBIDDEN = false;
+    public const CHILDREN = 'children';
+
+    /**
+     * Field SET
+     *
+     * Holds other field names which may or not co-exist with the defined field.
+     * This method **SHOULD** follow {@see InterfaceFeed::IS_SELECTION} or {@see InterfaceFeed::IS_EXCLUSIVE}
+     *
+     * @access  public
+     * @static
+     * @var     string SET
+     */
+    public const SET = 'set';
 
     /**
      * Supported Extension To Content Type Mapping
@@ -104,15 +151,23 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
         ],
         self::EXTENSION_JSON    => [
             self::APPLICATION_JSON      => null,
+            self::APPLICATION_FEED_JSON => null,
         ],
     ];
 
     /**
-     * 
+     * Content Types To Extensions Mapping
+     *
+     * Delivers specific file extensions for given data types.
+     *
+     * @access  public
+     * @static
+     * @var     array<string, string> PURE
      */
     public const PURE = [
         self::APPLICATION_ATOM_XML  => self::EXTENSION_ATOM,
         self::APPLICATION_JSON      => self::EXTENSION_JSON,
+        self::APPLICATION_FEED_JSON => self::EXTENSION_JSON,
         self::APPLICATION_RDF_XML   => self::EXTENSION_RDF,
         self::APPLICATION_RSS_XML   => self::EXTENSION_RSS,
         self::APPLICATION_XML       => self::EXTENSION_XML,
@@ -493,4 +548,37 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @var     string FIELD_ITEMS
      */
     public const FIELD_ITEMS = 'items';
+
+    /**
+     * Field Property
+     *
+     * Common or Feed specific field name identifier
+     *
+     * @access  public
+     * @static
+     * @var     string FIELD_MIME_TYPE
+     */
+    public const FIELD_MIME_TYPE = 'mime_type';
+
+    /**
+     * Field Property
+     *
+     * Common or Feed specific field name identifier
+     *
+     * @access  public
+     * @static
+     * @var     string FIELD_SIZE_IN_BYTES
+     */
+    public const FIELD_SIZE_IN_BYTES = 'size_in_bytes';
+
+    /**
+     * Field Property
+     *
+     * Common or Feed specific field name identifier
+     *
+     * @access  public
+     * @static
+     * @var     string FIELD_DURATION_IN_SECONDS
+     */
+    public const FIELD_DURATION_IN_SECONDS = 'duration_in_seconds';
 }
