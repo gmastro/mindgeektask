@@ -17,10 +17,6 @@ declare(strict_types=1);
 
 namespace App\Customizations\Traits;
 
-use App\Customizations\Components\interfaces\InterfaceErrorCodes;
-use ReflectionMethod;
-use ReflectionProperty;
-
 /**
  * Error Code Trait
  *
@@ -39,12 +35,12 @@ trait ReflectionTrait
      *
      * @final
      * @access  private
-     * @param   ReflectionProperty|ReflectionMethod $reflection
-     * @return  ReflectionProperty|ReflectionMethod
+     * @param   \ReflectionProperty|\ReflectionMethod $reflection
+     * @return  \ReflectionProperty|\ReflectionMethod
      */
     final private function setAccessibility(
-        ReflectionProperty|ReflectionMethod $reflection
-    ): ReflectionProperty|ReflectionMethod {
+        \ReflectionProperty|\ReflectionMethod $reflection
+    ): \ReflectionProperty|\ReflectionMethod {
         if (false === $reflection->isPublic()) {
             $reflection->setAccessible(true);
         }
