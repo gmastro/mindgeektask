@@ -18,10 +18,20 @@ class JsonFeedTest extends TestCase
 {
     use ReflectionTrait;
 
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Current one provides some success sample data for valid json feeds.
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, object>>
+     */
     public static function providerSuccessJson(): array
     {
         return [
-            'version-1-0'   => [(object) [
+            'version-1.0'   => [(object) [
                 InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
                 InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
                 InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
@@ -38,7 +48,7 @@ class JsonFeedTest extends TestCase
                     ],
                 ],
             ]],
-            'version-1-1'   => [(object) [
+            'version-1.1'   => [(object) [
                 InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
                 InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
                 InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
@@ -51,6 +61,47 @@ class JsonFeedTest extends TestCase
                     ], [
                         InterfaceFeed::FIELD_ID             => fake()->randomDigit(),
                         InterfaceFeed::FIELD_CONTENT_HTML   => fake()->text(),
+                        InterfaceFeed::FIELD_URL            => \implode("/", [fake()->url(), fake()->randomDigit()]),
+                    ],
+                ],
+            ]],
+            'version-1.1-extended' => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
+                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
+                InterfaceFeed::FIELD_FEED_URL       => fake()->url() . "/feed.json",
+                InterfaceFeed::FIELD_AUTHORS        => [
+                    [
+                        InterfaceFeed::FIELD_NAME       => \sprintf("%s %s", fake()->firstName(), fake()->lastName()),
+                        InterfaceFeed::FIELD_URL        => fake()->url(),
+                        InterfaceFeed::FIELD_AVATAR     => fake()->url(),
+                    ]
+                ],
+                InterfaceFeed::FIELD_ITEMS          => [
+                    [
+                        InterfaceFeed::FIELD_ID             => fake()->randomDigit(),
+                        InterfaceFeed::FIELD_CONTENT_TEXT   => fake()->text(),
+                        InterfaceFeed::FIELD_CONTENT_HTML   => \sprintf("<div>%s</div>", fake()->text()),
+                        InterfaceFeed::FIELD_URL            => \implode("/", [fake()->url(), fake()->randomDigit()]),
+                        InterfaceFeed::FIELD_SUMMARY        => fake()->sentence(),
+                        InterfaceFeed::FIELD_DATE_PUBLISHED => now()->subDays(1)->toDateTimeString(),
+                        InterfaceFeed::FIELD_ATTACHMENTS    => [
+                            [
+                                InterfaceFeed::FIELD_URL                => fake()->url(),
+                                InterfaceFeed::FIELD_MIME_TYPE          => fake()->mimeType(),
+                                InterfaceFeed::FIELD_SIZE_IN_BYTES      => fake()->numberBetween(),
+                                InterfaceFeed::FIELD_DURATION_IN_SECONDS=> fake()->numberBetween(60, 3600),
+                            ], [
+                                InterfaceFeed::FIELD_URL                => fake()->url(),
+                                InterfaceFeed::FIELD_MIME_TYPE          => fake()->mimeType(),
+                                InterfaceFeed::FIELD_SIZE_IN_BYTES      => fake()->numberBetween(),
+                                InterfaceFeed::FIELD_DURATION_IN_SECONDS=> fake()->numberBetween(60, 3600),
+                            ]
+                        ]
+                    ], [
+                        InterfaceFeed::FIELD_ID             => fake()->randomDigit(),
+                        InterfaceFeed::FIELD_CONTENT_TEXT   => fake()->text(),
+                        InterfaceFeed::FIELD_CONTENT_HTML   => \sprintf("<div>%s</div>", fake()->text()),
                         InterfaceFeed::FIELD_URL            => \implode("/", [fake()->url(), fake()->randomDigit()]),
                     ],
                 ],
@@ -73,31 +124,224 @@ class JsonFeedTest extends TestCase
     }
 
     /**
-     * Invalid Json Urls
+     * Data Provider
      *
-     * Contains various links for downloading feed content, for validation and processing
+     * Usable data for SUTs, STUBs and MOCKs
+     * Invalid Json content for the different set of available versions for downloading feed content, for validation
+     * and processing.
      *
      * @access  public
      * @static
-     * @return  array<string, array<string, string>|string>
+     * @return  array<string, array<int, object>>
      */
-    public static function providerFailureJson(): array
+    public static function providerEmptyJson(): array
     {
         return [
-            'version-1-0'   => [(object) []],
-            'version-1-1'   => [(object) []],
+            'version-1.0'   => [(object) []],
+            'version-1.1'   => [(object) []],
         ];
     }
 
     #[Group('failure')]
     #[Group('construct')]
-    #[DataProvider('providerFailureJson')]
+    #[DataProvider('providerEmptyJson')]
     public function test_failure_construct(object $feed): void
     {
         $sut = new JsonFeed($feed);
 
         $isValid = $this->propertyGet($sut, 'isValid');
         $this->assertFalse($isValid);
+    }
+
+    #[Group('success')]
+    #[Group('method_validate')]
+    public function test_success_validate(): void
+    {
+        $sut = new JsonFeed((object) [
+            InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
+        ]);
+
+        $result = $this->methodSet($sut, 'validate', [[
+            [
+                InterfaceFeed::FIELD_ID     => 1,
+                InterfaceFeed::FIELD_TITLE  => "title",
+            ]
+        ], [
+            InterfaceFeed::IS_ARRAY => InterfaceFeed::IS_OBJECT,
+        ]]);
+
+        $this->assertTrue($result);
+    }
+
+    #[Group('success')]
+    #[Group('method_capture')]
+    #[DataProvider('providerSuccessJson')]
+    public function test_success_capture(object $feed): void
+    {
+        $sut = new JsonFeed($feed);
+
+        $json = $this->propertyGet($sut, 'json');
+        $result = $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+    }
+
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Constructor exception data
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, object>>
+     */
+    public static function providerFailureJson(): array
+    {
+        return [
+            'version-1.0'   => [
+                (object) [
+                    InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+                    InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                    InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
+                    InterfaceFeed::FIELD_FEED_URL       => NAN,
+                    InterfaceFeed::FIELD_ITEMS          => [
+                        [
+                            InterfaceFeed::FIELD_ID             => 123,
+                            InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                            InterfaceFeed::FIELD_AUTHOR         => [],
+                        ]
+                    ],
+                ],
+            ],
+            'version-1.1'   => [
+                (object) [
+                    InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
+                    InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                    InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
+                    InterfaceFeed::FIELD_FEED_URL       => NAN,
+                    InterfaceFeed::FIELD_ITEMS          => [
+                        [
+                            InterfaceFeed::FIELD_ID             => 123,
+                            InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                        ],
+                    ]
+                ],
+            ],
+        ];
+    }
+
+    #[Group('failure')]
+    #[Group('method_capture')]
+    #[DataProvider('providerFailureJson')]
+    public function test_failure_capture(object $feed): void
+    {
+        $sut = new JsonFeed($feed);
+
+        $json = $this->propertyGet($sut, 'json');
+        $result = $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey(InterfaceFeed::FIELD_TITLE, $result);
+        $this->assertArrayHasKey(InterfaceFeed::FIELD_ITEMS, $result);
+        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_HOME_PAGE_URL, $result);
+        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_FEED_URL, $result);
+        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_AUTHOR, $result[InterfaceFeed::FIELD_ITEMS][0]);
+    }
+
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Constructor exception data
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, object>>
+     */
+    public static function providerExceptionJson(): array
+    {
+        return [
+            'empty-version-1'                   => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+            ]],
+            'invalid-data-type-on-title'     => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+                InterfaceFeed::FIELD_TITLE          => 42,
+                InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
+                InterfaceFeed::FIELD_FEED_URL       => NAN,
+                InterfaceFeed::FIELD_ITEMS          => [
+                    [
+                        InterfaceFeed::FIELD_ID             => true,
+                        InterfaceFeed::FIELD_TITLE          => [],
+                        InterfaceFeed::FIELD_AUTHORS        => [],
+                    ], [
+
+                    ],
+                ]
+            ]],
+            'malformed-children-version-1'      => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
+                InterfaceFeed::FIELD_FEED_URL       => \implode("/", [fake()->url(), "feed.json"]),
+                InterfaceFeed::FIELD_ITEMS          => 'should be an array here'
+            ]],
+            'malformed-children-version-2'     => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
+                InterfaceFeed::FIELD_FEED_URL       => NAN,
+                InterfaceFeed::FIELD_ITEMS          => [
+                    [
+                        InterfaceFeed::FIELD_ID             => true,
+                        InterfaceFeed::FIELD_TITLE          => [],
+                        InterfaceFeed::FIELD_AUTHORS        => [],
+                    ],
+                ]
+            ]],
+            'malformed-children-version-3'     => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
+                InterfaceFeed::FIELD_FEED_URL       => NAN,
+                InterfaceFeed::FIELD_ITEMS          => [
+                    [
+                        InterfaceFeed::FIELD_ID             => true,
+                        InterfaceFeed::FIELD_TITLE          => [],
+                        InterfaceFeed::FIELD_AUTHORS        => [],
+                    ], [
+
+                    ],
+                ]
+            ]],
+            'empty-children-version-1'      => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
+                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
+                InterfaceFeed::FIELD_FEED_URL       => \implode("/", [fake()->url(), "feed.json"]),
+                InterfaceFeed::FIELD_ITEMS          => [],
+            ]],
+            'empty-version-1.0'                 => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.0",
+            ]],
+            'empty-version-1.1'                 => [(object) [
+                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
+            ]],
+        ];
+    }
+
+    #[Group('exception')]
+    #[Group('method_capture')]
+    #[DataProvider('providerExceptionJson')]
+    public function test_exception_capture(object $feed): void
+    {
+        $this->expectException(\ValueError::class);
+        $sut = new JsonFeed($feed);
+
+        $json = $this->propertyGet($sut, 'json');
+        $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
     }
 
     #[Group('current')]

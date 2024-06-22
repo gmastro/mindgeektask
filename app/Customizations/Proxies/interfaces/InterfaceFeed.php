@@ -42,7 +42,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @static
      * @var     string REQUIRED
      */
-    public const IS_REQUIRED = 'required';
+    public const IS_REQUIRED = 'is-required';
 
     /**
      * Field Appearence States
@@ -53,7 +53,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @static
      * @var     string OPTIONAL
      */
-    public const IS_OPTIONAL = 'optional';
+    public const IS_OPTIONAL = 'is-optional';
 
     /**
      * Field Appearence States
@@ -65,7 +65,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @static
      * @var     string SELECTION
      */
-    public const IS_SELECTION = 'selection';
+    public const IS_SELECTION = 'is-selection';
 
     /**
      * Field Appearence States
@@ -77,7 +77,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @static
      * @var     string IS_EXCLUSIVE
      */
-    public const IS_EXCLUSIVE = 'exclusive';
+    public const IS_EXCLUSIVE = 'is-exclusive';
 
     /**
      * Field Appearence States
@@ -88,7 +88,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @static
      * @var     string IS_DEPRECATED
      */
-    public const IS_DEPRECATED = 'deprecated';
+    public const IS_DEPRECATED = 'is-deprecated';
 
     /**
      * Field With Children
@@ -101,6 +101,30 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @var     string FORBIDDEN
      */
     public const CHILDREN = 'children';
+
+    /**
+     * Field Appearence States
+     *
+     * Either one of the selected fields.
+     * The alternatives of this selection have to be defined within {@see InterfaceFeed::SET}
+     *
+     * @access  public
+     * @static
+     * @var     string SELECTION
+     */
+    public const HAS_SELECTION = 'has-selection';
+
+    /**
+     * Field Appearence States
+     *
+     * When the appeared field **SHOULD NOT** co-exist with other fields.
+     * This flag is complementary by {@see InterfaceFeed::SET}
+     *
+     * @access  public
+     * @static
+     * @var     string HAS_EXCLUSIVE
+     */
+    public const HAS_EXCLUSIVE = 'has-exclusive';
 
     /**
      * Field SET
@@ -581,4 +605,98 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      * @var     string FIELD_DURATION_IN_SECONDS
      */
     public const FIELD_DURATION_IN_SECONDS = 'duration_in_seconds';
+
+    /**
+     * Field Property
+     *
+     * Common or Feed specific field name identifier
+     *
+     * @access  public
+     * @static
+     * @var     string FIELD_WEBSUB
+     */
+    public const FIELD_WEBSUB = 'WebSub';
+
+    /**
+     * Data Types Property
+     *
+     * Naming convention for identifying datatype per identified field.
+     *
+     * @access  public
+     * @static
+     * @var     string DATATYPES
+     */
+    public const DATATYPES = 'data-types';
+
+    /**
+     * Callable Property
+     *
+     * Array data types callable, will be used to evaluate the context via given feed
+     *
+     * @access  public
+     * @static
+     * @var     callable IS_ARRAY
+     */
+    public const IS_ARRAY = 'is_array';
+
+    /**
+     * Callable Property
+     *
+     * Object data types callable, will be used to evaluate the context via given feed
+     *
+     * @access  public
+     * @static
+     * @var     callable IS_OBJECT
+     */
+    public const IS_OBJECT = 'is_object';
+
+    /**
+     * Callable Property
+     *
+     * String data types callable, will be used to evaluate the context via given feed
+     *
+     * @access  public
+     * @static
+     * @var     callable IS_STRING
+     */
+    public const IS_STRING = 'is_string';
+
+    /**
+     * Callable Property
+     *
+     * Boolean data types callable, will be used to evaluate the context via given feed
+     *
+     * @access  public
+     * @static
+     * @var     callable IS_BOOL
+     */
+    public const IS_BOOL = 'is_bool';
+
+    /**
+     * Callable Property
+     *
+     * Numeric data types callable, will be used to evaluate the context via given feed
+     *
+     * @access  public
+     * @static
+     * @var     callable IS_NUMERIC
+     */
+    public const IS_NUMERIC = 'is_numeric';
+
+    /**
+     * Callable Property
+     *
+     * Usable for checking if any of the provided callables **SHOULD** be invoked
+     *
+     * @access  public
+     * @static
+     * @var     array HAS_CALLABLE
+     */
+    public const HAS_CALLABLE = [
+        self::IS_ARRAY      => null,
+        self::IS_BOOL       => null,
+        self::IS_NUMERIC    => null,
+        self::IS_OBJECT     => null,
+        self::IS_STRING     => null,
+    ];
 }

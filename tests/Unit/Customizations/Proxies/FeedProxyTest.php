@@ -13,13 +13,13 @@ use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Customizations\Facades\FeedFacade;
 use App\Customizations\Proxies\FeedProxy;
+use Tests\Fixtures\Traits\ReflectionTrait;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Tests\TestCase;
-use TypeError;
 
 #[CoversClass(FeedProxy::class)]
 #[UsesClass(ExamineComponent::class)]
@@ -32,6 +32,8 @@ use TypeError;
 #[UsesClass(RdfFeed::class)]
 class FeedProxyTest extends TestCase
 {
+    use ReflectionTrait;
+
     /**
      * Storage Name Property
      *
@@ -119,9 +121,7 @@ class FeedProxyTest extends TestCase
         $sut = new FeedProxy($facade->convertor($this->downloader($acquire)));
         $this->assertInstanceOf(FeedProxy::class, $sut);
 
-        $property   = new \ReflectionProperty($sut, 'feed');
-        $property->setAccessible(true);
-        $feed = $property->getValue($sut);
+        $feed = $this->propertyGet($sut, 'feed');
         $this->assertInstanceOf($expected, $feed);
     }
 

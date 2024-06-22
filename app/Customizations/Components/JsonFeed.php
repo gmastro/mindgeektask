@@ -19,8 +19,6 @@ namespace App\Customizations\Components;
 
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
 use Illuminate\Support\Arr;
-use InvalidArgumentException;
-use LogicException;
 
 /**
  * JSON Feed
@@ -79,59 +77,115 @@ class JsonFeed implements InterfaceFeed
     public const VERSIONS = [
         self::VERSION_X_X               => [
             self::FIELD_VERSION             => [
-                self::IS_REQUIRED,
+                self::IS_REQUIRED               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_TITLE               => [
-                self::IS_REQUIRED,
+                self::IS_REQUIRED               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_ICON                => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_HOME_PAGE_URL       => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_FEED_URL            => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_DESCRIPTION         => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_USER_COMMENT        => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_NEXT_URL            => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_ICON                => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_FAVICON             => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
-            // authors (moved in version 1.1)
             self::FIELD_LANGUAGE            => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_STRING                 => null,
+                ],
             ],
             self::FIELD_EXPIRED             => [
-                self::IS_OPTIONAL,
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_BOOL                   => null,
+                ],
             ],
-            self::FIELD_HUBS            => [
-                self::IS_OPTIONAL,
-                self::CHILDREN              => [
-                    self::FIELD_URL             => [
-                        self::IS_REQUIRED,
+            self::FIELD_HUBS                => [
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_ARRAY                  => self::IS_OBJECT,
+                ],
+                self::CHILDREN                  => [
+                    self::IS_REQUIRED               => true,
+                    self::FIELD_URL                 => [
+                        self::IS_REQUIRED               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_TYPE                => [
-                        self::IS_REQUIRED,
-                        self::CHILDREN              => [
-                            "WebSub"                    => [
-                                self::IS_REQUIRED,
-                                self::CHILDREN              => [
-                                    self::FIELD_MODE            => [
-                                        self::IS_REQUIRED,
+                        self::IS_REQUIRED               => true,
+                        self::DATATYPES                 => [
+                            self::IS_OBJECT                 => null,
+                        ],
+                        self::CHILDREN                  => [
+                            self::IS_REQUIRED               => true,
+                            self::FIELD_WEBSUB              => [
+                                self::IS_REQUIRED               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_OBJECT                 => null,
+                                ],
+                                self::CHILDREN                  => [
+                                    self::IS_REQUIRED               => true,
+                                    self::FIELD_MODE                => [
+                                        self::IS_REQUIRED               => true,
+                                        self::DATATYPES                 => [
+                                            self::IS_STRING                 => null,
+                                        ],
                                     ],
-                                    self::FIELD_REASON          => [
-                                        self::IS_OPTIONAL,
+                                    self::FIELD_REASON              => [
+                                        self::IS_OPTIONAL               => true,
+                                        self::DATATYPES                 => [
+                                            self::IS_STRING                 => null,
+                                        ],
                                     ],
                                 ],
                             ],
@@ -140,195 +194,266 @@ class JsonFeed implements InterfaceFeed
                 ],
             ],
             self::FIELD_ITEMS               => [
-                self::IS_REQUIRED,
+                self::IS_REQUIRED               => true,
+                self::DATATYPES                 => [
+                    self::IS_ARRAY                  => self::IS_OBJECT,
+                ],
                 self::CHILDREN                  => [
+                    self::IS_REQUIRED               => true,
+                    self::HAS_SELECTION             => [
+                        self::FIELD_CONTENT_TEXT        => null,
+                        self::FIELD_CONTENT_HTML        => null
+                    ],
                     self::FIELD_ID                  => [
-                        self::IS_REQUIRED,
+                        self::IS_REQUIRED               => true,
+                        self::DATATYPES                 => [
+                            self::IS_NUMERIC                => null,
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_URL                 => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_EXTERNAL_URL        => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_TITLE               => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_CONTENT_HTML        => [
-                        self::IS_SELECTION,
-                        self::SET                       => [
-                            self::FIELD_CONTENT_TEXT        => null
+                        self::IS_SELECTION              => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
                         ],
                     ],
                     self::FIELD_CONTENT_TEXT        => [
-                        self::IS_SELECTION,
-                        self::SET                       => [
-                            self::FIELD_CONTENT_HTML        => null
+                        self::IS_SELECTION              => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
                         ],
                     ],
                     self::FIELD_SUMMARY             => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_IMAGE               => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_BANNER_IMAGE        => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_DATE_PUBLISHED      => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_DATE_MODIFIED       => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_TAGS                => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_ARRAY                  => self::IS_STRING,
+                        ],
                     ],
                     self::FIELD_LANGUAGE            => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                     self::FIELD_ATTACHMENTS         => [
-                        self::IS_OPTIONAL,
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_ARRAY                  => self::IS_OBJECT,
+                        ],
                         self::CHILDREN                  => [
+                            self::IS_REQUIRED               => true,
                             self::FIELD_URL                 => [
-                                self::IS_REQUIRED,
+                                self::IS_REQUIRED               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
                             self::FIELD_MIME_TYPE           => [
-                                self::IS_REQUIRED,
+                                self::IS_REQUIRED               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
                             self::FIELD_TITLE               => [
-                                self::IS_OPTIONAL,
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
                             self::FIELD_SIZE_IN_BYTES       => [
-                                self::IS_OPTIONAL,
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_NUMERIC                => null,
+                                ],
                             ],
                             self::FIELD_DURATION_IN_SECONDS => [
-                                self::IS_OPTIONAL,
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_NUMERIC                => null,
+                                ],
                             ],
                         ],
                     ],
                 ],
             ],
         ],
-        self::VERSION_1_0           => [
-            self::FIELD_AUTHOR          => [
-                self::IS_OPTIONAL,
-                self::CHILDREN              => [
-                    self::IS_OPTIONAL,
-                    self::FIELD_NAME            => [
-                        self::IS_OPTIONAL,
+        self::VERSION_1_0               => [
+            self::FIELD_AUTHOR              => [
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_OBJECT                 => null,
+                ],
+                self::CHILDREN                  => [
+                    self::IS_OPTIONAL               => true,
+                    self::FIELD_NAME                => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
-                    self::FIELD_URL             => [
-                        self::IS_OPTIONAL,
+                    self::FIELD_URL                 => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
-                    self::FIELD_AVATAR          => [
-                        self::IS_OPTIONAL,
+                    self::FIELD_AVATAR              => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                 ],
             ],
-            self::FIELD_ITEMS       => [
-                self::IS_REQUIRED,
-                self::CHILDREN          => [
-                    self::FIELD_AUTHOR          => [
-                        self::IS_OPTIONAL,
-                        self::CHILDREN              => [
-                            self::IS_OPTIONAL,
-                            self::FIELD_NAME            => [
-                                self::IS_OPTIONAL,
+            self::FIELD_ITEMS               => [
+                self::IS_REQUIRED               => true,
+                self::DATATYPES                 => [
+                    self::IS_ARRAY                  => self::IS_OBJECT,
+                ],
+                self::CHILDREN                  => [
+                    self::FIELD_AUTHOR              => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_OBJECT                 => null,
+                        ],
+                        self::CHILDREN                  => [
+                            self::IS_OPTIONAL               => true,
+                            self::FIELD_NAME                => [
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
-                            self::FIELD_URL             => [
-                                self::IS_OPTIONAL,
+                            self::FIELD_URL                 => [
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
-                            self::FIELD_AVATAR          => [
-                                self::IS_OPTIONAL,
+                            self::FIELD_AVATAR              => [
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
                         ],
                     ],
                 ],
             ],
         ],
-        self::VERSION_1_1           => [
-            self::FIELD_AUTHORS         => [
-                self::IS_OPTIONAL,
-                self::CHILDREN              => [
-                    self::FIELD_NAME            => [
-                        self::IS_OPTIONAL,
+        self::VERSION_1_1               => [
+            self::FIELD_AUTHORS             => [
+                self::IS_OPTIONAL               => true,
+                self::DATATYPES                 => [
+                    self::IS_ARRAY                  => self::IS_OBJECT,
+                ],
+                self::CHILDREN                  => [
+                    self::IS_OPTIONAL               => true,
+                    self::FIELD_NAME                => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
-                    self::FIELD_URL             => [
-                        self::IS_OPTIONAL,
+                    self::FIELD_URL                 => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
-                    self::FIELD_AVATAR          => [
-                        self::IS_OPTIONAL,
+                    self::FIELD_AVATAR              => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_STRING                 => null,
+                        ],
                     ],
                 ],
             ],
-            self::FIELD_ITEMS       => [
-                self::IS_REQUIRED,
-                self::CHILDREN          => [
-                    self::FIELD_AUTHORS         => [
-                        self::IS_OPTIONAL,
-                        self::CHILDREN              => [
-                            self::FIELD_NAME            => [
-                                self::IS_OPTIONAL,
+            self::FIELD_ITEMS               => [
+                self::IS_REQUIRED               => true,
+                self::DATATYPES                 => [
+                    self::IS_ARRAY                  => self::IS_OBJECT,
+                ],
+                self::CHILDREN                  => [
+                    self::IS_OPTIONAL               => true,
+                    self::FIELD_AUTHORS             => [
+                        self::IS_OPTIONAL               => true,
+                        self::DATATYPES                 => [
+                            self::IS_ARRAY                 => self::IS_OBJECT,
+                        ],
+                        self::CHILDREN                  => [
+                            self::IS_OPTIONAL               => true,
+                            self::FIELD_NAME                => [
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
-                            self::FIELD_URL             => [
-                                self::IS_OPTIONAL,
+                            self::FIELD_URL                 => [
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
-                            self::FIELD_AVATAR          => [
-                                self::IS_OPTIONAL,
+                            self::FIELD_AVATAR              => [
+                                self::IS_OPTIONAL               => true,
+                                self::DATATYPES                 => [
+                                    self::IS_STRING                 => null,
+                                ],
                             ],
                         ],
                     ],
                 ],
             ],
         ],
-    ];
-
-    /**
-     * Data Types
-     *
-     * What data type to expect from the each field
-     *
-     * @access  public
-     * @static
-     * @var     array<string, array> DATATYPES
-     */
-    public const DATATYPES = [
-        self::FIELD_ATTACHMENTS         => ['object[]'],
-        self::FIELD_AUTHOR              => ['object[]'],
-        self::FIELD_AUTHORS             => ['object[]'],
-        self::FIELD_AVATAR              => ['string'],
-        self::FIELD_BANNER_IMAGE        => ['string'],
-        self::FIELD_CONTENT_HTML        => ['string'],
-        self::FIELD_CONTENT_TEXT        => ['string'],
-        self::FIELD_DATE_MODIFIED       => ['string'],
-        self::FIELD_DATE_PUBLISHED      => ['string'],
-        self::FIELD_DESCRIPTION         => ['string'],
-        self::FIELD_DURATION_IN_SECONDS => ['numeric'],
-        self::FIELD_EXPIRED             => ['bool'],
-        self::FIELD_EXTERNAL_URL        => ['string'],
-        self::FIELD_FAVICON             => ['string'],
-        self::FIELD_FEED_URL            => ['string'],
-        self::FIELD_HOME_PAGE_URL       => ['string'],
-        self::FIELD_HUBS                => ['object[]'],
-        self::FIELD_ICON                => ['string'],
-        self::FIELD_ID                  => ['string'],
-        self::FIELD_IMAGE               => ['string'],
-        self::FIELD_ITEMS               => ['object[]'],
-        self::FIELD_LANGUAGE            => ['string'],
-        self::FIELD_MIME_TYPE           => ['string'],
-        self::FIELD_MODE                => ['string', self::SET => ['subscribe', 'unsubscribe']],
-        self::FIELD_NAME                => ['string'],
-        self::FIELD_NEXT_URL            => ['string'],
-        self::FIELD_REASON              => ['string'],
-        self::FIELD_SIZE_IN_BYTES       => ['numeric'],
-        self::FIELD_SUMMARY             => ['string'],
-        self::FIELD_TAGS                => ['string[]'],
-        self::FIELD_TITLE               => ['string'],
-        self::FIELD_TYPE                => ['string', self::SET => ["WebSub", "rssCloud"]],
-        self::FIELD_URL                 => ['string'],
-        self::FIELD_USER_COMMENT        => ['string'],
-        self::FIELD_VERSION             => ['string'],
     ];
 
     /**
@@ -362,6 +487,17 @@ class JsonFeed implements InterfaceFeed
     private array $json = [];
 
     /**
+     * Context Property
+     * 
+     * Contains sanitized array content.
+     * It will be used as the output.
+     *
+     * @access  private
+     * @var     array $context
+     */
+    private array $context = [];
+
+    /**
      * Magic Construct
      *
      * Creates a file, or replaces and truncates the content of an existing one.
@@ -375,9 +511,7 @@ class JsonFeed implements InterfaceFeed
     {
         $version = $object->version ?? '';
         
-        if(false === preg_match(self::VERSION_X_X, $version, $matches)) {
-            throw new LogicException(preg_last_error_msg());
-        }
+        \preg_match(self::VERSION_X_X, $version, $matches);
 
         $this->version = match($matches[2] ?? null) {
             "1"     => self::VERSION_1_0,
@@ -390,6 +524,104 @@ class JsonFeed implements InterfaceFeed
     }
 
     /**
+     * Has Exclusive
+     *
+     * Verify whether the iterator contains exclusive fields.
+     * Only one must be present
+     *
+     * @access  private
+     * @param   array $rules Rules applied for parent field
+     * @param   array $iterator Present fields to examine
+     * @return  void
+     */
+    private function isExclusive(array $rules, array $iterator): void
+    {
+        if(false === Arr::exists($rules, self::HAS_EXCLUSIVE)) {
+            return;
+        }
+
+        $intersection = \array_intersect_key($iterator, $rules[self::HAS_EXCLUSIVE]);
+        
+        if(\sizeof($intersection) !== 1) {
+            throw new \ValueError(\sprintf(
+                "Found mutually exclusive keys: [%s]",
+                \implode(",", \array_keys($rules[self::HAS_EXCLUSIVE]))
+            ));
+        }
+    }
+
+    /**
+     * Has Selection
+     *
+     * Verify whether the iterator contains selection fields.
+     * At least a single one has to be available.
+     *
+     * @access  private
+     * @param   array $rules Rules applied for parent field
+     * @param   array $iterator Present fields to examine
+     * @return  void
+     */
+    private function isSelection(array $rules, array $iterator): void
+    {
+        if(false === Arr::exists($rules, self::HAS_SELECTION)) {
+            return;
+        }
+
+        $intersection = \array_intersect_key($iterator, $rules[self::HAS_SELECTION]);
+        if(\sizeof($intersection) < 1) {
+            throw new \ValueError(\sprintf(
+                "Missing selection of one of available keys: [%s]",
+                \implode(",", \array_keys($rules[self::HAS_SELECTION]))
+            ));
+        }
+    }
+
+    /**
+     * Validator
+     *
+     * Checks if the content within each and every node holds expected datatype content.
+     * Since there are might be more than a single validating cases the iterator will stop on the very first true case.
+     *
+     * @access  private
+     * @param   mixed $context The values to 
+     */
+    private function validate(mixed $context, array $callables): bool
+    {
+        $result = false;
+
+        foreach($callables as $callable => $inner) {
+            if(true === $result) {
+                break;
+            }
+
+            try {
+                $within = match($inner) {
+                    null            => false,
+                    self::IS_OBJECT => $context === \array_filter(
+                        $context,
+                        fn(mixed $value) => \is_array($value) && false === \array_is_list($value)
+                    ),
+                    default         => $context === \array_filter($context, $inner),
+                };
+
+                $result |= match($callable) {
+                    self::IS_ARRAY  => \array_is_list($context) && $within,
+                    null            => true,
+                    default         => \call_user_func($callable, $context),
+                };
+            } catch(\TypeError $e) {
+                info("{method}. Expected: [{expected}], Got: {got}", [
+                    'method'    => __METHOD__,
+                    'expected'  => \implode(' -> ', [$callable, $inner]),
+                    'got'       => \gettype($context)
+                ]);
+            }
+        }
+
+        return (bool) $result;
+    }
+
+    /**
      * Recursive Capture
      *
      * Will check through all the available fields if the set of conditions is matched
@@ -399,6 +631,7 @@ class JsonFeed implements InterfaceFeed
      * @param   array $mapping Depth selection to verify data integrity
      * @param   array $json Received feed
      * @param   array $container Feed content processed, verified and stored
+     * @return  array
      */
     private function capture(array $mapping, array $json, array $container = []): array
     {
@@ -406,18 +639,25 @@ class JsonFeed implements InterfaceFeed
             $mapping,
             \array_flip([
                 self::FIELD_VERSION,
+                self::DATATYPES,
                 self::IS_REQUIRED,
                 self::IS_OPTIONAL,
                 self::IS_DEPRECATED,
+                self::HAS_EXCLUSIVE,
+                self::HAS_SELECTION,
                 self::IS_EXCLUSIVE,
                 self::IS_SELECTION,
+                self::SET,
                 self::CHILDREN
             ])
         );
 
+        $this->isExclusive($mapping, $iterator);
+        $this->isSelection($mapping, $iterator);
+
         foreach($iterator as $key => $rules) {
             if(false === Arr::exists($json, $key)) {
-                if (true === Arr::exists($mapping, self::IS_REQUIRED)) {
+                if (true === Arr::exists($rules, self::IS_REQUIRED)) {
                     throw new \ValueError(\sprintf("Required property: `%s` is missing", $key));
                 }
 
@@ -427,16 +667,44 @@ class JsonFeed implements InterfaceFeed
             // shorthands
             $context = $json[$key];
 
-            if(true === Arr::exists($mapping, self::CHILDREN)) {
-                if(false === \is_array($context)) {
-                    throw new \ValueError(\sprintf("Expected iterable, instead got %s", \gettype($context)));
+            if(false === $this->validate($context, $rules[self::DATATYPES])) {
+                if(true === Arr::exists($rules, self::IS_REQUIRED)) {
+                    info("{method}. Validation failure on required property: `{key}`", [
+                        'method'    => __METHOD__,
+                        'key'       => $key,
+                        'rules'     => $rules[self::DATATYPES],
+                        'context'   => $context,
+                    ]);
+
+                    throw new \ValueError(\sprintf(
+                        "Required property: `%s` has invalid data type or does not satisfy the rules. See log",
+                        $key
+                    ));
                 }
 
-                if(true === Arr::exists($mapping[self::CHILDREN], self::IS_REQUIRED) && true === empty($context)) {
+                continue;
+            }
+
+            if(true === Arr::exists($rules, self::CHILDREN)) {
+                if(true === Arr::exists($rules[self::CHILDREN], self::IS_REQUIRED) && [] === $context) {
                     throw new \ValueError(\sprintf("Required property: `%s` exists, yet is empty", $key));
                 }
 
-                $container[$key] = $this->capture($mapping[self::CHILDREN], $context);
+                if(true === Arr::exists($rules[self::DATATYPES], self::IS_ARRAY)) {
+                    $sizeOfContext = \sizeof($context);
+                    for($i = 0; $i < $sizeOfContext; $i++) {
+                        $container[$key][$i] = \array_merge(
+                            $container[$key][$i] ??= [],
+                            $this->capture($rules[self::CHILDREN], $context[$i])
+                        );
+                    }
+                } else {
+                    $container[$key] = \array_merge(
+                        $container[$key] ?? [],
+                        $this->capture($rules[self::CHILDREN], $context)
+                    );
+                }
+
                 continue;
             }
 
@@ -444,6 +712,19 @@ class JsonFeed implements InterfaceFeed
         }
 
         return $container;
+    }
+
+    /**
+     * Accessor
+     *
+     * Return what has been stored within the context
+     *
+     * @access  public
+     * @return  array
+     */
+    public function getContext(): array
+    {
+        return $this->context;
     }
 
     /**
@@ -456,9 +737,7 @@ class JsonFeed implements InterfaceFeed
         }
 
         $container = $this->capture(self::VERSIONS[self::VERSION_X_X], $this->json);
-        $container = $this->capture(self::VERSIONS[$this->version], $this->json, $container);
-
-        dump($container);
+        $this->context = $this->capture(self::VERSIONS[$this->version], $this->json, $container);
 
         return true;
     }
