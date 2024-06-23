@@ -544,7 +544,7 @@ class JsonFeed implements InterfaceFeed
         
         if(\sizeof($intersection) !== 1) {
             throw new \ValueError(\sprintf(
-                "Found mutually exclusive keys: [%s]",
+                "Found none of or mutually exclusive keys: [%s]",
                 \implode(",", \array_keys($rules[self::HAS_EXCLUSIVE]))
             ));
         }

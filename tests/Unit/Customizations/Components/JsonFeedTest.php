@@ -172,6 +172,10 @@ class JsonFeedTest extends TestCase
         $random = \rand(2,10);
         $rules = fake()->words($random);
         return [
+            'no-rule'       => [
+                [],
+                \array_fill_keys($rules, fake()->sentence()),
+            ],
             'exclusive-01'  => [
                 [
                     InterfaceFeed::HAS_EXCLUSIVE => [
@@ -229,6 +233,16 @@ class JsonFeedTest extends TestCase
     {
         $rules = fake()->words(11);
         return [
+            'empty'  => [
+                [
+                    InterfaceFeed::HAS_EXCLUSIVE => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ]
+                ], [
+
+                ]
+            ],
             'exclusive-01'  => [
                 [
                     InterfaceFeed::HAS_EXCLUSIVE => [
@@ -263,27 +277,133 @@ class JsonFeedTest extends TestCase
     {
         $this->expectException(\ValueError::class);
         $this->expectExceptionMessage(\sprintf(
-            "Found mutually exclusive keys: [%s]",
+            "Found none of or mutually exclusive keys: [%s]",
             \implode(",", \array_keys($rules[InterfaceFeed::HAS_EXCLUSIVE]))
         ));
         $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
         $this->methodSet($sut, 'isExclusive', [$rules, $data]);
     }
 
-    #[Group('current')]
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Holds at least one or more selections
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, array[]>>
+     */
+    public static function providerSelectionSuccess(): array
+    {
+        $rules = fake()->words(11);
+        return [
+            'selection-01'  => [
+                [
+                    InterfaceFeed::HAS_SELECTION => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ],
+                ], [
+                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
+                ]
+            ],
+            'selection-02'  => [
+                [
+                    InterfaceFeed::HAS_SELECTION => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ],
+                ], [
+                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
+                ]
+            ],
+            'selection-03'  => [
+                [
+                    InterfaceFeed::HAS_SELECTION => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ],
+                ], [
+                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
+                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
+                ]
+            ],
+            'selection-04'  => [
+                [
+                    InterfaceFeed::HAS_SELECTION =>  \array_fill_keys($rules, null),
+                ], [
+                    $rules[0] => fake()->boolean(),
+                    $rules[1] => fake()->numerify("## what ##"),
+                    $rules[2] => fake()->uuid(),
+                    $rules[3] => fake()->lexify("?? what ??"),
+                    $rules[5] => fake()->email(),
+                    $rules[7] => fake()->date(),
+                ]
+            ],
+        ];
+    }
+
     #[Group('success')]
     #[Group('method_isSelection')]
-    #[DataProvider('providerExclusiveSuccess')]
+    #[DataProvider('providerSelectionSuccess')]
     public function test_success_is_selection(array $rules, array $data): void
     {
-        $this->markTestIncomplete('need to implement logic');
+        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
+        $this->methodSet($sut, 'isSelection', [$rules, $data]);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Selection, at least one has to be present. We capture the cases where none is.
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, array[]>>
+     */
+    public static function providerSelectionException(): array
+    {
+        $rules = fake()->words(11);
+        return [
+            'empty'  => [
+                [
+                    InterfaceFeed::HAS_SELECTION => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ]
+                ], [
+
+                ]
+            ],
+            'nothing-matched'  => [
+                [
+                    InterfaceFeed::HAS_SELECTION => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ],
+                ], [
+                    ...\array_fill_keys($rules, fake()->sentence()),
+                ]
+            ],
+        ];
     }
 
     #[Group('exception')]
     #[Group('method_isSelection')]
-    public function test_exception_is_selection(): void
+    #[DataProvider('providerSelectionException')]
+    public function test_exception_is_selection(array $rules, array $data): void
     {
-        $this->markTestIncomplete('need to implement logic');
+        $this->expectException(\ValueError::class);
+        $this->expectExceptionMessage(\sprintf(
+            "Missing selection of one of available keys: [%s]",
+            \implode(",", \array_keys($rules[InterfaceFeed::HAS_SELECTION]))
+        ));
+        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
+        $this->methodSet($sut, 'isSelection', [$rules, $data]);
     }
 
     #[Group('success')]
