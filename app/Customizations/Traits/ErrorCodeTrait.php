@@ -34,6 +34,9 @@ trait ErrorCodeTrait
      * Error Code Batch
      *
      * Holds all those error codes before terminating the instance
+     *
+     * @access  protected
+     * @var     array $errorBatch
      */
     protected $errorBatch = [];
 

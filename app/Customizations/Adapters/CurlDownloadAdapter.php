@@ -8,7 +8,6 @@ use App\Customizations\Adapters\interfaces\InterfaceAdapter;
 use App\Customizations\Components\FileOpenComponent;
 use App\Customizations\Components\interfaces\InterfaceErrorCodes;
 use App\Customizations\Components\interfaces\InterfaceRemoteStream;
-use App\Customizations\Components\interfaces\InterfaceStorage;
 use App\Customizations\Traits\ErrorCodeTrait;
 use App\Customizations\Traits\FilenameTrait;
 use Illuminate\Support\Facades\Log;
