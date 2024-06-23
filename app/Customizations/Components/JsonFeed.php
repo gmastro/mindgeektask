@@ -590,10 +590,6 @@ class JsonFeed implements InterfaceFeed
         $result = false;
 
         foreach($callables as $callable => $inner) {
-            if(true === $result) {
-                break;
-            }
-
             try {
                 $within = match($inner) {
                     null            => false,
@@ -616,9 +612,15 @@ class JsonFeed implements InterfaceFeed
                     'got'       => \gettype($context)
                 ]);
             }
+
+            $result = (bool) $result;
+
+            if(true === $result) {
+                return $result;
+            }
         }
 
-        return (bool) $result;
+        return $result;
     }
 
     /**

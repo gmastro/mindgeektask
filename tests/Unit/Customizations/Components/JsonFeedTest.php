@@ -5,6 +5,7 @@ namespace Tests\Unit\Customizations\Components;
 
 use App\Customizations\Components\JsonFeed;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
+use Illuminate\Support\Facades\Log;
 use Tests\Fixtures\Traits\ReflectionTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -154,6 +155,34 @@ class JsonFeedTest extends TestCase
     }
 
     #[Group('success')]
+    #[Group('method_isExclusive')]
+    public function test_success_is_exclusive(): void
+    {
+        $this->markTestIncomplete('need to implement logic');
+    }
+
+    #[Group('failure')]
+    #[Group('method_isExclusive')]
+    public function test_failure_is_exclusive(): void
+    {
+        $this->markTestIncomplete('need to implement logic');
+    }
+
+    #[Group('success')]
+    #[Group('method_isSelection')]
+    public function test_success_is_selection(): void
+    {
+        $this->markTestIncomplete('need to implement logic');
+    }
+
+    #[Group('failure')]
+    #[Group('method_isSelection')]
+    public function test_failure_is_selection(): void
+    {
+        $this->markTestIncomplete('need to implement logic');
+    }
+
+    #[Group('success')]
     #[Group('method_validate')]
     public function test_success_validate(): void
     {
@@ -171,6 +200,100 @@ class JsonFeedTest extends TestCase
         ]]);
 
         $this->assertTrue($result);
+    }
+
+    /**
+     * Data Provider
+     *
+     * Usable for the given SUT, or STUB, or MOCK.
+     * Holds data type variations that will not match our condition
+     *
+     * @access  public
+     * @return  array
+     */
+    public static function providerValidationFailure(): array
+    {
+        return [
+            'is-array' => [
+                null,
+                [
+                    InterfaceFeed::IS_NUMERIC   => null,
+                    InterfaceFeed::IS_STRING    => null,
+                    InterfaceFeed::IS_BOOL      => null,
+                    InterfaceFeed::IS_OBJECT    => null,
+                ]
+            ],
+            'is_object' => [
+                (object) [null],
+                [
+                    InterfaceFeed::IS_ARRAY     => null,
+                ]
+            ]
+        ];
+    }
+
+    #[Group('failure')]
+    #[Group('method_validate')]
+    #[DataProvider('providerValidationFailure')]
+    public function test_failure_validate(): void
+    {
+        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
+
+        $result = $this->methodSet($sut, 'validate', \func_get_args());
+
+        $mock = Log::partialMock();
+        $mock->shouldNotHaveReceived('info');
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Data Provider
+     *
+     * Usable for the given SUT, or STUB, or MOCK.
+     * Holds data type variations that will not match our condition
+     *
+     * @access  public
+     * @return  array
+     */
+    public static function providerValidationPredictFailure(): array
+    {
+        return [
+            'is-array' => [
+                'This will create 2 info messages, one for associative array and one for bool[]',
+                [
+                    InterfaceFeed::IS_ARRAY     => InterfaceFeed::IS_OBJECT,
+                    InterfaceFeed::IS_ARRAY     => InterfaceFeed::IS_BOOL,
+                ]
+            ],
+        ];
+    }
+
+    #[Group('current')]
+    #[Group('failure')]
+    #[Group('method_validate')]
+    #[DataProvider('providerValidationPredictFailure')]
+    public function test_failure_validate_catch(): void
+    {
+        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
+
+        $result = $this->methodSet($sut, 'validate', \func_get_args());
+
+        $mock = Log::partialMock();
+        $method = \sprintf("%s::validate", \get_class($sut));
+        $got = \gettype(\func_get_arg(0));
+
+        foreach(\func_get_arg(1) as $k => $v) {
+            $expected = $v === null ? $k : \sprintf("%s -> %s", $k, $v);
+
+            $mock->shouldReceive('info')
+                ->with(\sprintf("%s. Expected: [%s], Got: %s", $method, $expected, $got), [
+                    'method' => $method,
+                    'expected' => $expected, 'got' => $got]
+                );
+        }
+
+        $this->assertFalse($result);
     }
 
     #[Group('success')]
@@ -344,7 +467,6 @@ class JsonFeedTest extends TestCase
         $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
     }
 
-    #[Group('current')]
     #[Group('success')]
     #[Group('method_execute')]
     #[DataProvider('providerSuccessJson')]
