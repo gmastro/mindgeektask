@@ -104,4 +104,204 @@ class FeedFacade
             default                                                                 => null,
         };
     }
+
+    /**
+     * Has Exclusive
+     *
+     * Verify whether the iterator contains exclusive fields.
+     * Only one must be present
+     *
+     * @access  private
+     * @param   array $rules Rules applied for parent field
+     * @param   array $iterator Present fields to examine
+     * @return  void
+     */
+    private function isExclusive(array $rules, array $iterator): void
+    {
+        if(false === Arr::exists($rules, InterfaceFeed::HAS_EXCLUSIVE)) {
+            return;
+        }
+
+        $intersection = \array_intersect_key($iterator, $rules[InterfaceFeed::HAS_EXCLUSIVE]);
+        
+        if(\sizeof($intersection) !== 1) {
+            throw new \ValueError(\sprintf(
+                "Found none of or mutually exclusive keys: [%s]",
+                \implode(",", \array_keys($rules[InterfaceFeed::HAS_EXCLUSIVE]))
+            ));
+        }
+    }
+
+    /**
+     * Has Selection
+     *
+     * Verify whether the iterator contains selection fields.
+     * At least a single one has to be available.
+     *
+     * @access  private
+     * @param   array $rules Rules applied for parent field
+     * @param   array $iterator Present fields to examine
+     * @return  void
+     */
+    private function isSelection(array $rules, array $iterator): void
+    {
+        if(false === Arr::exists($rules, InterfaceFeed::HAS_SELECTION)) {
+            return;
+        }
+
+        $intersection = \array_intersect_key($iterator, $rules[InterfaceFeed::HAS_SELECTION]);
+        if(\sizeof($intersection) < 1) {
+            throw new \ValueError(\sprintf(
+                "Missing selection of one of available keys: [%s]",
+                \implode(",", \array_keys($rules[InterfaceFeed::HAS_SELECTION]))
+            ));
+        }
+    }
+
+    /**
+     * Validator
+     *
+     * Checks if the content within each and every node holds expected datatype content.
+     * Since there are might be more than a single validating cases the iterator will stop on the very first true case.
+     *
+     * @access  private
+     * @param   mixed $context Validates raw data for possible data type errors
+     * @param   array $callables List of callables for validating the context.
+     * @return  bool
+     * @todo    Possible need to add {@see InterfaceFeed::SET} validation for getting specific values
+     */
+    private function validate(mixed $context, array $callables): bool
+    {
+        $result = false;
+
+        foreach($callables as $callable => $inner) {
+            try {
+                // this is the second level of validation, confirms that the children have the expected structure
+                $within = match($inner) {
+                    null            => false,
+                    InterfaceFeed::IS_OBJECT => $context === \array_filter(
+                        $context,
+                        fn(mixed $value) => true === \is_array($value) && false === \array_is_list($value)
+                    ),
+                    default         => $context === \array_filter($context, $inner),
+                };
+
+                // this is the first level of validation
+                $result |= match($callable) {
+                    InterfaceFeed::IS_ARRAY  => \array_is_list($context) && $within,
+                    InterfaceFeed::IS_OBJECT => true === \is_array($context) && false === \array_is_list($context),
+                    null            => true,
+                    default         => \call_user_func($callable, $context),
+                };
+            } catch(\TypeError $e) {
+                info("{method}. Expected: [{expected}], Got: {got}", [
+                    'method'    => __METHOD__,
+                    'expected'  => \implode(' -> ', [$callable, $inner]),
+                    'got'       => \gettype($context)
+                ]);
+            }
+
+            $result = (bool) $result;
+
+            if(true === $result) {
+                return $result;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Recursive Capture
+     *
+     * Will check through all the available fields if the set of conditions is matched
+     * Oncy they do it will store the content.
+     *
+     * @access  public
+     * @param   array $mapping Depth selection to verify data integrity
+     * @param   array $json Received feed
+     * @param   array $container Feed content processed, verified and stored
+     * @return  array
+     */
+    public function capture(array $mapping, array $json, array $container = []): array
+    {
+        $iterator = \array_diff_key(
+            $mapping,
+            \array_flip([
+                InterfaceFeed::FIELD_VERSION,
+                InterfaceFeed::DATATYPES,
+                InterfaceFeed::IS_REQUIRED,
+                InterfaceFeed::IS_OPTIONAL,
+                InterfaceFeed::IS_DEPRECATED,
+                InterfaceFeed::HAS_EXCLUSIVE,
+                InterfaceFeed::HAS_SELECTION,
+                InterfaceFeed::IS_EXCLUSIVE,
+                InterfaceFeed::IS_SELECTION,
+                InterfaceFeed::SET,
+                InterfaceFeed::CHILDREN
+            ])
+        );
+
+        $this->isExclusive($mapping, $json);
+        $this->isSelection($mapping, $json);
+
+        foreach($iterator as $key => $rules) {
+            if(false === Arr::exists($json, $key)) {
+                if (true === Arr::exists($rules, InterfaceFeed::IS_REQUIRED)) {
+                    throw new \ValueError(\sprintf("Required property: `%s` is missing", $key));
+                }
+
+                continue;
+            }
+
+            // shorthands
+            $context = $json[$key];
+
+            if(false === $this->validate($context, $rules[InterfaceFeed::DATATYPES])) {
+                if(true === Arr::exists($rules, InterfaceFeed::IS_REQUIRED)) {
+                    info("{method}. Validation failure on required property: `{key}`", [
+                        'method'    => __METHOD__,
+                        'key'       => $key,
+                        'rules'     => $rules[InterfaceFeed::DATATYPES],
+                        'got'       => \gettype($context),
+                        'context'   => $context,
+                    ]);
+
+                    throw new \ValueError(\sprintf(
+                        "Required property: `%s` has invalid data type or does not satisfy the rules. See log",
+                        $key
+                    ));
+                }
+
+                continue;
+            }
+
+            if(true === Arr::exists($rules, InterfaceFeed::CHILDREN)) {
+                if(true === Arr::exists($rules[InterfaceFeed::CHILDREN], InterfaceFeed::IS_REQUIRED) && [] === $context) {
+                    throw new \ValueError(\sprintf("Required property: `%s` exists, yet is empty", $key));
+                }
+
+                if(true === Arr::exists($rules[InterfaceFeed::DATATYPES], InterfaceFeed::IS_ARRAY)) {
+                    $sizeOfContext = \sizeof($context);
+                    for($i = 0; $i < $sizeOfContext; $i++) {
+                        $container[$key][$i] = \array_merge(
+                            $container[$key][$i] ??= [],
+                            $this->capture($rules[InterfaceFeed::CHILDREN], $context[$i])
+                        );
+                    }
+                } else {
+                    $container[$key] = \array_merge(
+                        $container[$key] ?? [],
+                        $this->capture($rules[InterfaceFeed::CHILDREN], $context)
+                    );
+                }
+
+                continue;
+            }
+
+            $container[$key] = $context;
+        }
+
+        return $container;
+    }
 }

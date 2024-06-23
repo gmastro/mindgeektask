@@ -40,7 +40,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      *
      * @access  public
      * @static
-     * @var     string REQUIRED
+     * @var     string IS_REQUIRED
      */
     public const IS_REQUIRED = 'is-required';
 
@@ -51,7 +51,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      *
      * @access  public
      * @static
-     * @var     string OPTIONAL
+     * @var     string IS_OPTIONAL
      */
     public const IS_OPTIONAL = 'is-optional';
 
@@ -63,7 +63,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      *
      * @access  public
      * @static
-     * @var     string SELECTION
+     * @var     string IS_SELECTION
      */
     public const IS_SELECTION = 'is-selection';
 
@@ -98,7 +98,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      *
      * @access  public
      * @static
-     * @var     string FORBIDDEN
+     * @var     string CHILDREN
      */
     public const CHILDREN = 'children';
 
@@ -110,7 +110,7 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
      *
      * @access  public
      * @static
-     * @var     string SELECTION
+     * @var     string HAS_SELECTION
      */
     public const HAS_SELECTION = 'has-selection';
 
@@ -699,4 +699,36 @@ interface InterfaceFeed extends InterfaceProxy, InterfaceExtensions, InterfaceCo
         self::IS_OBJECT     => null,
         self::IS_STRING     => null,
     ];
+
+    /**
+     * Accessor
+     *
+     * Returns the set of rules needed for validating and preparing the context needed.
+     *
+     * @access  public
+     * @return  array
+     */
+    public function getRules(): array;
+
+    /**
+     * Sanitize Content
+     *
+     * Sanitizes and Captures the context.
+     * It returns true if it is error free.
+     *
+     * @access  public
+     * @return  bool
+     */
+    public function sanitize(): bool;
+
+    /**
+     * Execute
+     *
+     * Generates an event source entry right after mapping the content to as supposed to based on the current
+     * UI/UX interface structure.
+     *
+     * @access  public
+     * @return  bool
+     */
+    public function execute(): bool;
 }

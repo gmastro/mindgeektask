@@ -17,8 +17,10 @@ declare(strict_types=1);
 
 namespace App\Customizations\Proxies;
 
+use App\Customizations\Facades\FeedFacade;
 use App\Customizations\Proxies\interfaces\InterfaceProxy;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
+use Illuminate\Support\Arr;
 
 /**
  * Feed Proxy
@@ -33,7 +35,7 @@ use App\Customizations\Proxies\interfaces\InterfaceFeed;
  * @final
  * @todo        Missing multilingual support for all available filetypes
  */
-final class FeedProxy implements InterfaceProxy
+final class FeedProxy implements InterfaceFeed, InterfaceProxy
 {
     /**
      * Constructor
@@ -46,7 +48,7 @@ final class FeedProxy implements InterfaceProxy
      * @param   InterfaceFeed $feed Any feed type
      * @return  self
      */
-    public function __construct(private InterfaceFeed $feed)
+    public function __construct(private InterfaceFeed $service)
     {
         // nothing here
     }
@@ -54,9 +56,24 @@ final class FeedProxy implements InterfaceProxy
     /**
      * {@inheritdoc}
      */
+    public function getRules(): array
+    {
+        return $this->service->getRules();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function sanitize(): bool
+    {
+        return $this->service->sanitize();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function execute(): bool
     {
-        $response = true;
-        return $response;
+        return $this->service->execute();
     }
 }

@@ -17,8 +17,11 @@ declare(strict_types=1);
 
 namespace App\Customizations\Components;
 
+use App\Customizations\Components\interfaces\InterfaceErrorCodes;
+use App\Customizations\Facades\FeedFacade;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
-use Illuminate\Support\Arr;
+use App\Customizations\Traits\ErrorCodeTrait;
+use Illuminate\Support\Facades\Log;
 
 /**
  * JSON Feed
@@ -31,6 +34,8 @@ use Illuminate\Support\Arr;
  */
 class JsonFeed implements InterfaceFeed
 {
+    use ErrorCodeTrait;
+
     /**
      * Versions
      *
@@ -467,16 +472,6 @@ class JsonFeed implements InterfaceFeed
     private string $version = self::VERSION_1_1;
 
     /**
-     * Flag Property
-     *
-     * Whether the given feed is valid or not, it will be invalid until processed.
-     *
-     * @access  private
-     * @var     bool $isValid
-     */
-    private bool $isValid = false;
-
-    /**
      * Context Property
      * 
      * Contains possible a valid set of data for this given feed
@@ -503,15 +498,13 @@ class JsonFeed implements InterfaceFeed
      * Creates a file, or replaces and truncates the content of an existing one.
      *
      * @access  public
-     * @param   string|null $filename Location to read/write from
-     * @param   string $mode Flags to determine the type of access for the given resource
+     * @param   object $object Raw data from source
+     * @param   string|array|null $callback **Default `null`**, capture and sanitization callback
      * @return  self
      */
-    public function __construct(private object $object)
+    public function __construct(private object $object, private string|array|null $callback = null)
     {
-        $version = $object->version ?? '';
-        
-        \preg_match(self::VERSION_X_X, $version, $matches);
+        \preg_match(self::VERSION_X_X, $object->version ?? '', $matches);
 
         $this->version = match($matches[2] ?? null) {
             "1"     => self::VERSION_1_0,
@@ -519,201 +512,50 @@ class JsonFeed implements InterfaceFeed
             default => "",
         };
 
-        $this->isValid = $this->version !== "";
+        $this->setErrorCode(InterfaceErrorCodes::FEED_SOURCE, $this->version === "");
         $this->json = \get_object_vars($object);
+        $this->callback ??= [new FeedFacade(), 'capture'];
     }
 
     /**
-     * Has Exclusive
-     *
-     * Verify whether the iterator contains exclusive fields.
-     * Only one must be present
-     *
-     * @access  private
-     * @param   array $rules Rules applied for parent field
-     * @param   array $iterator Present fields to examine
-     * @return  void
+     * {@inheritdoc}
      */
-    private function isExclusive(array $rules, array $iterator): void
+    public function getRules(): array
     {
-        if(false === Arr::exists($rules, self::HAS_EXCLUSIVE)) {
-            return;
-        }
-
-        $intersection = \array_intersect_key($iterator, $rules[self::HAS_EXCLUSIVE]);
-        
-        if(\sizeof($intersection) !== 1) {
-            throw new \ValueError(\sprintf(
-                "Found none of or mutually exclusive keys: [%s]",
-                \implode(",", \array_keys($rules[self::HAS_EXCLUSIVE]))
-            ));
-        }
+        return self::VERSIONS;
     }
 
     /**
-     * Has Selection
-     *
-     * Verify whether the iterator contains selection fields.
-     * At least a single one has to be available.
-     *
-     * @access  private
-     * @param   array $rules Rules applied for parent field
-     * @param   array $iterator Present fields to examine
-     * @return  void
+     * {@inheritdoc}
      */
-    private function isSelection(array $rules, array $iterator): void
+    public function sanitize(): bool
     {
-        if(false === Arr::exists($rules, self::HAS_SELECTION)) {
-            return;
+        if (true === $this->hasErrors()) {
+            return false;
         }
 
-        $intersection = \array_intersect_key($iterator, $rules[self::HAS_SELECTION]);
-        if(\sizeof($intersection) < 1) {
-            throw new \ValueError(\sprintf(
-                "Missing selection of one of available keys: [%s]",
-                \implode(",", \array_keys($rules[self::HAS_SELECTION]))
-            ));
-        }
-    }
+        try
+        {
+            $container = \call_user_func_array($this->callback, [
+                $this->getRules()[self::VERSION_X_X],
+                $this->json
+            ]);
 
-    /**
-     * Validator
-     *
-     * Checks if the content within each and every node holds expected datatype content.
-     * Since there are might be more than a single validating cases the iterator will stop on the very first true case.
-     *
-     * @access  private
-     * @param   mixed $context The values to 
-     */
-    private function validate(mixed $context, array $callables): bool
-    {
-        $result = false;
+            $this->context = \call_user_func_array($this->callback, [
+                $this->getRules()[$this->version],
+                $this->json,
+                $container
+            ]);
+        } catch(\Throwable $t) {
+            Log::error("{method}. Either validation error, or something else", [
+                'method' => __METHOD__,
+                'throwable' => $t
+            ]);
 
-        foreach($callables as $callable => $inner) {
-            try {
-                $within = match($inner) {
-                    null            => false,
-                    self::IS_OBJECT => $context === \array_filter(
-                        $context,
-                        fn(mixed $value) => \is_array($value) && false === \array_is_list($value)
-                    ),
-                    default         => $context === \array_filter($context, $inner),
-                };
-
-                $result |= match($callable) {
-                    self::IS_ARRAY  => \array_is_list($context) && $within,
-                    null            => true,
-                    default         => \call_user_func($callable, $context),
-                };
-            } catch(\TypeError $e) {
-                info("{method}. Expected: [{expected}], Got: {got}", [
-                    'method'    => __METHOD__,
-                    'expected'  => \implode(' -> ', [$callable, $inner]),
-                    'got'       => \gettype($context)
-                ]);
-            }
-
-            $result = (bool) $result;
-
-            if(true === $result) {
-                return $result;
-            }
+            $this->setErrorCode(InterfaceErrorCodes::FEED_SANITIZATION);
         }
 
-        return $result;
-    }
-
-    /**
-     * Recursive Capture
-     *
-     * Will check through all the available fields if the set of conditions is matched
-     * Oncy they do it will store the content.
-     *
-     * @access  private
-     * @param   array $mapping Depth selection to verify data integrity
-     * @param   array $json Received feed
-     * @param   array $container Feed content processed, verified and stored
-     * @return  array
-     */
-    private function capture(array $mapping, array $json, array $container = []): array
-    {
-        $iterator = \array_diff_key(
-            $mapping,
-            \array_flip([
-                self::FIELD_VERSION,
-                self::DATATYPES,
-                self::IS_REQUIRED,
-                self::IS_OPTIONAL,
-                self::IS_DEPRECATED,
-                self::HAS_EXCLUSIVE,
-                self::HAS_SELECTION,
-                self::IS_EXCLUSIVE,
-                self::IS_SELECTION,
-                self::SET,
-                self::CHILDREN
-            ])
-        );
-
-        $this->isExclusive($mapping, $json);
-        $this->isSelection($mapping, $json);
-
-        foreach($iterator as $key => $rules) {
-            if(false === Arr::exists($json, $key)) {
-                if (true === Arr::exists($rules, self::IS_REQUIRED)) {
-                    throw new \ValueError(\sprintf("Required property: `%s` is missing", $key));
-                }
-
-                continue;
-            }
-
-            // shorthands
-            $context = $json[$key];
-
-            if(false === $this->validate($context, $rules[self::DATATYPES])) {
-                if(true === Arr::exists($rules, self::IS_REQUIRED)) {
-                    info("{method}. Validation failure on required property: `{key}`", [
-                        'method'    => __METHOD__,
-                        'key'       => $key,
-                        'rules'     => $rules[self::DATATYPES],
-                        'context'   => $context,
-                    ]);
-
-                    throw new \ValueError(\sprintf(
-                        "Required property: `%s` has invalid data type or does not satisfy the rules. See log",
-                        $key
-                    ));
-                }
-
-                continue;
-            }
-
-            if(true === Arr::exists($rules, self::CHILDREN)) {
-                if(true === Arr::exists($rules[self::CHILDREN], self::IS_REQUIRED) && [] === $context) {
-                    throw new \ValueError(\sprintf("Required property: `%s` exists, yet is empty", $key));
-                }
-
-                if(true === Arr::exists($rules[self::DATATYPES], self::IS_ARRAY)) {
-                    $sizeOfContext = \sizeof($context);
-                    for($i = 0; $i < $sizeOfContext; $i++) {
-                        $container[$key][$i] = \array_merge(
-                            $container[$key][$i] ??= [],
-                            $this->capture($rules[self::CHILDREN], $context[$i])
-                        );
-                    }
-                } else {
-                    $container[$key] = \array_merge(
-                        $container[$key] ?? [],
-                        $this->capture($rules[self::CHILDREN], $context)
-                    );
-                }
-
-                continue;
-            }
-
-            $container[$key] = $context;
-        }
-
-        return $container;
+        return $this->hasErrors() === false;
     }
 
     /**
@@ -734,13 +576,6 @@ class JsonFeed implements InterfaceFeed
      */
     public function execute(): bool
     {
-        if (false === $this->isValid) {
-            return $this->isValid;
-        }
-
-        $container = $this->capture(self::VERSIONS[self::VERSION_X_X], $this->json);
-        $this->context = $this->capture(self::VERSIONS[$this->version], $this->json, $container);
-
-        return true;
+        return $this->sanitize();
     }
 }

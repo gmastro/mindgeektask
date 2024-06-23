@@ -4,20 +4,22 @@ declare(strict_types=1);
 namespace Tests\Unit\Customizations\Components;
 
 use App\Customizations\Components\JsonFeed;
+use App\Customizations\Facades\FeedFacade;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
-use Faker\Provider\ar_EG\Internet;
 use Illuminate\Support\Facades\Log;
-use PhpParser\Builder\Interface_;
 use Tests\Fixtures\Traits\ReflectionTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\Attributes\UsesClass;
+use Tests\Fixtures\Providers\ExternalProviderJsonFeed;
 use Tests\TestCase;
 use ValueError;
 
 #[CoversClass(JsonFeed::class)]
 #[UsesClass(InterfaceFeed::class)]
+#[UsesClass(FeedFacade::class)]
 class JsonFeedTest extends TestCase
 {
     use ReflectionTrait;
@@ -40,6 +42,20 @@ class JsonFeedTest extends TestCase
                 InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
                 InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
                 InterfaceFeed::FIELD_FEED_URL       => \implode("/", [fake()->url(), "feed.json"]),
+                InterfaceFeed::FIELD_AUTHOR         => [
+                    InterfaceFeed::FIELD_NAME           => \implode(" ", [fake()->firstName(), fake()->lastName()]),
+                ],
+                InterfaceFeed::FIELD_HUBS           => [
+                    [
+                        InterfaceFeed::FIELD_URL            => fake()->url(),
+                        InterfaceFeed::FIELD_TYPE           => [
+                            InterfaceFeed::FIELD_WEBSUB         => [
+                                InterfaceFeed::FIELD_MODE           => "subscribe",
+                                InterfaceFeed::FIELD_REASON         => "That's the way, I like it!",
+                            ]
+                        ]
+                    ]
+                ],
                 InterfaceFeed::FIELD_ITEMS          => [
                     [
                         InterfaceFeed::FIELD_ID             => fake()->randomDigit(),
@@ -120,11 +136,14 @@ class JsonFeedTest extends TestCase
     {
         $sut = new JsonFeed($feed);
 
-        $isValid = $this->propertyGet($sut, 'isValid');
         $json = $this->propertyGet($sut, 'json');
+        $version = $this->propertyGet($sut, 'version');
+        $callback = $this->propertyGet($sut, 'callback');
 
-        $this->assertTrue($isValid);
+        $this->assertFalse($sut->hasErrors());
         $this->assertNotEmpty($json);
+        $this->assertNotSame("", $version);
+        $this->assertIsCallable($callback);
     }
 
     /**
@@ -146,559 +165,125 @@ class JsonFeedTest extends TestCase
         ];
     }
 
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Invalid or unsupported json versions.
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, object>>
+     */
+    public static function providerUnsupportedInvalidVersions(): array
+    {
+        return [
+            'invalid'       => [(object)[InterfaceFeed::FIELD_VERSION => 'not a matching version string']],
+            'unsupported'   => [(object)[InterfaceFeed::FIELD_VERSION => 'https://jsonfeed.org/version/100.1']],
+        ];
+    }
+
     #[Group('failure')]
     #[Group('construct')]
     #[DataProvider('providerEmptyJson')]
+    #[DataProvider('providerUnsupportedInvalidVersions')]
     public function test_failure_construct(object $feed): void
     {
         $sut = new JsonFeed($feed);
 
-        $isValid = $this->propertyGet($sut, 'isValid');
-        $this->assertFalse($isValid);
-    }
+        $version = $this->propertyGet($sut, 'version');
 
-    /**
-     * Data Provider
-     *
-     * Usable data for SUTs, STUBs and MOCKs
-     * Exclusions, as you may have only a single entry available from all those provided
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<int, array[]>>
-     */
-    public static function providerExclusiveSuccess(): array
-    {
-        $random = \rand(2,10);
-        $rules = fake()->words($random);
-        return [
-            'no-rule'       => [
-                [],
-                \array_fill_keys($rules, fake()->sentence()),
-            ],
-            'exclusive-01'  => [
-                [
-                    InterfaceFeed::HAS_EXCLUSIVE => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ]
-                ], [
-                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
-                    ...\array_fill_keys($rules, fake()->sentence()),
-                ]
-            ],
-            'exclusive-02'  => [
-                [
-                    InterfaceFeed::HAS_EXCLUSIVE => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ],
-                ], [
-                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
-                    ...\array_fill_keys($rules, fake()->sentence()),
-                ]
-            ],
-            'exclusive-03'  => [
-                [
-                    InterfaceFeed::HAS_EXCLUSIVE => \array_fill_keys($rules, null),
-                ], [
-                    $rules[$random - 1] => fake()->boolean(),
-                ]
-            ],
-        ];
+        $this->assertTrue($sut->hasErrors());
+        $this->assertSame("", $version);
     }
 
     #[Group('success')]
-    #[Group('method_isExclusive')]
-    #[DataProvider('providerExclusiveSuccess')]
-    public function test_success_is_exclusive(array $rules, array $data): void
-    {
-        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
-        $this->methodSet($sut, 'isExclusive', [$rules, $data]);
-
-        $this->assertTrue(true);
-    }
-
-    /**
-     * Data Provider
-     *
-     * Usable data for SUTs, STUBs and MOCKs
-     * Exclusions, this will confirm that 2 or more fields cannot appear the very same time
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<int, array[]>>
-     */
-    public static function providerExclusiveException(): array
-    {
-        $rules = fake()->words(11);
-        return [
-            'empty'  => [
-                [
-                    InterfaceFeed::HAS_EXCLUSIVE => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ]
-                ], [
-
-                ]
-            ],
-            'exclusive-01'  => [
-                [
-                    InterfaceFeed::HAS_EXCLUSIVE => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ],
-                ], [
-                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
-                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
-                    ...\array_fill_keys($rules, fake()->sentence()),
-                ]
-            ],
-            'exclusive-02'  => [
-                [
-                    InterfaceFeed::HAS_EXCLUSIVE =>  \array_fill_keys($rules, null),
-                ], [
-                    $rules[0] => fake()->boolean(),
-                    $rules[1] => fake()->numerify("## what ##"),
-                    $rules[2] => fake()->uuid(),
-                    $rules[3] => fake()->lexify("?? what ??"),
-                    $rules[5] => fake()->email(),
-                    $rules[7] => fake()->date(),
-                ]
-            ],
-        ];
-    }
-
-    #[Group('exception')]
-    #[Group('method_isExclusive')]
-    #[DataProvider('providerExclusiveException')]
-    public function test_exception_is_exclusive(array $rules, array $data): void
-    {
-        $this->expectException(\ValueError::class);
-        $this->expectExceptionMessage(\sprintf(
-            "Found none of or mutually exclusive keys: [%s]",
-            \implode(",", \array_keys($rules[InterfaceFeed::HAS_EXCLUSIVE]))
-        ));
-        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
-        $this->methodSet($sut, 'isExclusive', [$rules, $data]);
-    }
-
-    /**
-     * Data Provider
-     *
-     * Usable data for SUTs, STUBs and MOCKs
-     * Holds at least one or more selections
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<int, array[]>>
-     */
-    public static function providerSelectionSuccess(): array
-    {
-        $rules = fake()->words(11);
-        return [
-            'selection-01'  => [
-                [
-                    InterfaceFeed::HAS_SELECTION => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ],
-                ], [
-                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
-                ]
-            ],
-            'selection-02'  => [
-                [
-                    InterfaceFeed::HAS_SELECTION => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ],
-                ], [
-                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
-                ]
-            ],
-            'selection-03'  => [
-                [
-                    InterfaceFeed::HAS_SELECTION => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ],
-                ], [
-                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
-                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
-                ]
-            ],
-            'selection-04'  => [
-                [
-                    InterfaceFeed::HAS_SELECTION =>  \array_fill_keys($rules, null),
-                ], [
-                    $rules[0] => fake()->boolean(),
-                    $rules[1] => fake()->numerify("## what ##"),
-                    $rules[2] => fake()->uuid(),
-                    $rules[3] => fake()->lexify("?? what ??"),
-                    $rules[5] => fake()->email(),
-                    $rules[7] => fake()->date(),
-                ]
-            ],
-        ];
-    }
-
-    #[Group('success')]
-    #[Group('method_isSelection')]
-    #[DataProvider('providerSelectionSuccess')]
-    public function test_success_is_selection(array $rules, array $data): void
-    {
-        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
-        $this->methodSet($sut, 'isSelection', [$rules, $data]);
-
-        $this->assertTrue(true);
-    }
-
-    /**
-     * Data Provider
-     *
-     * Usable data for SUTs, STUBs and MOCKs
-     * Selection, at least one has to be present. We capture the cases where none is.
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<int, array[]>>
-     */
-    public static function providerSelectionException(): array
-    {
-        $rules = fake()->words(11);
-        return [
-            'empty'  => [
-                [
-                    InterfaceFeed::HAS_SELECTION => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ]
-                ], [
-
-                ]
-            ],
-            'nothing-matched'  => [
-                [
-                    InterfaceFeed::HAS_SELECTION => [
-                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
-                        InterfaceFeed::FIELD_CONTENT_HTML => null
-                    ],
-                ], [
-                    ...\array_fill_keys($rules, fake()->sentence()),
-                ]
-            ],
-        ];
-    }
-
-    #[Group('exception')]
-    #[Group('method_isSelection')]
-    #[DataProvider('providerSelectionException')]
-    public function test_exception_is_selection(array $rules, array $data): void
-    {
-        $this->expectException(\ValueError::class);
-        $this->expectExceptionMessage(\sprintf(
-            "Missing selection of one of available keys: [%s]",
-            \implode(",", \array_keys($rules[InterfaceFeed::HAS_SELECTION]))
-        ));
-        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
-        $this->methodSet($sut, 'isSelection', [$rules, $data]);
-    }
-
-    #[Group('success')]
-    #[Group('method_validate')]
-    public function test_success_validate(): void
-    {
-        $sut = new JsonFeed((object) [
-            InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
-        ]);
-
-        $result = $this->methodSet($sut, 'validate', [[
-            [
-                InterfaceFeed::FIELD_ID     => 1,
-                InterfaceFeed::FIELD_TITLE  => "title",
-            ]
-        ], [
-            InterfaceFeed::IS_ARRAY => InterfaceFeed::IS_OBJECT,
-        ]]);
-
-        $this->assertTrue($result);
-    }
-
-    /**
-     * Data Provider
-     *
-     * Usable for the given SUT, or STUB, or MOCK.
-     * Holds data type variations that will not match our condition
-     *
-     * @access  public
-     * @return  array
-     */
-    public static function providerValidationFailure(): array
-    {
-        return [
-            'is-array' => [
-                null,
-                [
-                    InterfaceFeed::IS_NUMERIC   => null,
-                    InterfaceFeed::IS_STRING    => null,
-                    InterfaceFeed::IS_BOOL      => null,
-                    InterfaceFeed::IS_OBJECT    => null,
-                ]
-            ],
-            'is_object' => [
-                (object) [null],
-                [
-                    InterfaceFeed::IS_ARRAY     => null,
-                ]
-            ]
-        ];
-    }
-
-    #[Group('failure')]
-    #[Group('method_validate')]
-    #[DataProvider('providerValidationFailure')]
-    public function test_failure_validate(): void
-    {
-        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
-
-        $result = $this->methodSet($sut, 'validate', \func_get_args());
-
-        $mock = Log::partialMock();
-        $mock->shouldNotHaveReceived('info');
-
-        $this->assertFalse($result);
-    }
-
-    /**
-     * Data Provider
-     *
-     * Usable for the given SUT, or STUB, or MOCK.
-     * Holds data type variations that will not match our condition
-     *
-     * @access  public
-     * @return  array
-     */
-    public static function providerValidationPredictFailure(): array
-    {
-        return [
-            'is-array' => [
-                'This will create 2 info messages, one for associative array and one for bool[]',
-                [
-                    InterfaceFeed::IS_ARRAY     => InterfaceFeed::IS_OBJECT,
-                    InterfaceFeed::IS_ARRAY     => InterfaceFeed::IS_BOOL,
-                ]
-            ],
-        ];
-    }
-
-    #[Group('failure')]
-    #[Group('method_validate')]
-    #[DataProvider('providerValidationPredictFailure')]
-    public function test_failure_validate_catch(): void
-    {
-        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
-
-        $result = $this->methodSet($sut, 'validate', \func_get_args());
-
-        $mock = Log::partialMock();
-        $method = \sprintf("%s::validate", \get_class($sut));
-        $got = \gettype(\func_get_arg(0));
-
-        foreach(\func_get_arg(1) as $k => $v) {
-            $expected = $v === null ? $k : \sprintf("%s -> %s", $k, $v);
-
-            $mock->shouldReceive('info')
-                ->with(\sprintf("%s. Expected: [%s], Got: %s", $method, $expected, $got), [
-                    'method' => $method,
-                    'expected' => $expected, 'got' => $got]
-                );
-        }
-
-        $this->assertFalse($result);
-    }
-
-    #[Group('success')]
-    #[Group('method_capture')]
+    #[Group('method_sanitize')]
+    #[Group('method_get_context')]
     #[DataProvider('providerSuccessJson')]
-    public function test_success_capture(object $feed): void
+    public function test_success_sanitize(object $feed): void
     {
         $sut = new JsonFeed($feed);
 
-        $json = $this->propertyGet($sut, 'json');
-        $result = $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
-        
-        $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
-    }
+        $this->assertTrue($sut->sanitize());
+        $this->assertNotEmpty($sut->getContext());
 
-    /**
-     * Data Provider
-     *
-     * Usable data for SUTs, STUBs and MOCKs
-     * Constructor exception data
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<int, object>>
-     */
-    public static function providerFailureJson(): array
-    {
-        return [
-            'version-1.0'   => [
-                (object) [
-                    InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-                    InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                    InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
-                    InterfaceFeed::FIELD_FEED_URL       => NAN,
-                    InterfaceFeed::FIELD_ITEMS          => [
-                        [
-                            InterfaceFeed::FIELD_ID             => 123,
-                            InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                            InterfaceFeed::FIELD_AUTHOR         => [],
-                            InterfaceFeed::FIELD_CONTENT_TEXT   => fake()->paragraph(),
-                        ]
-                    ],
-                ],
-            ],
-            'version-1.1'   => [
-                (object) [
-                    InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
-                    InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                    InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
-                    InterfaceFeed::FIELD_FEED_URL       => NAN,
-                    InterfaceFeed::FIELD_ITEMS          => [
-                        [
-                            InterfaceFeed::FIELD_ID             => 123,
-                            InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                            InterfaceFeed::FIELD_CONTENT_TEXT   => fake()->paragraph(),
-                        ],
-                    ]
-                ],
-            ],
-        ];
+        $mock = Log::partialMock();
+        $mock->shouldNotHaveReceived('error');
     }
 
     #[Group('failure')]
-    #[Group('method_capture')]
-    #[DataProvider('providerFailureJson')]
-    public function test_failure_capture(object $feed): void
+    #[Group('method_sanitize')]
+    #[Group('method_get_context')]
+    #[DataProvider('providerEmptyJson')]
+    #[DataProvider('providerUnsupportedInvalidVersions')]
+    public function test_failure_sanitize(object $feed): void
     {
         $sut = new JsonFeed($feed);
+        $this->assertFalse($sut->sanitize());
+        $this->assertEmpty($sut->getContext());
 
-        $json = $this->propertyGet($sut, 'json');
-        $result = $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        $mock = Log::partialMock();
+        $mock->shouldNotHaveReceived('error');
+    }
+
+    #[Group('failure')]
+    #[Group('method_sanitize')]
+    #[Group('method_get_context')]
+    #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerFailureJson')]
+    public function test_failure_sanitize_validation(object $feed): void
+    {
+        $sut = new JsonFeed($feed);
+        $this->assertTrue($sut->sanitize());
+
+        $context = $sut->getContext();
+        $this->assertNotEmpty($context);
+
+        $this->assertArrayHasKey(InterfaceFeed::FIELD_TITLE, $context);
+        $this->assertArrayHasKey(InterfaceFeed::FIELD_ITEMS, $context);
+        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_HOME_PAGE_URL, $context);
+        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_FEED_URL, $context);
+        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_AUTHOR, $context[InterfaceFeed::FIELD_ITEMS][0]);
         
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey(InterfaceFeed::FIELD_TITLE, $result);
-        $this->assertArrayHasKey(InterfaceFeed::FIELD_ITEMS, $result);
-        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_HOME_PAGE_URL, $result);
-        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_FEED_URL, $result);
-        $this->assertArrayNotHasKey(InterfaceFeed::FIELD_AUTHOR, $result[InterfaceFeed::FIELD_ITEMS][0]);
+        $mock = Log::partialMock();
+        $mock->shouldNotHaveReceived('error');
     }
 
-    /**
-     * Data Provider
-     *
-     * Usable data for SUTs, STUBs and MOCKs
-     * Constructor exception data
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<int, object>>
-     */
-    public static function providerExceptionJson(): array
+    #[Group('failure')]
+    #[Group('method_sanitize')]
+    #[Group('method_get_context')]
+    #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerExceptionJson')]
+    public function test_failure_sanitize_exception(object $feed): void
     {
-        return [
-            'empty-version-1'                   => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-            ]],
-            'invalid-data-type-on-title'     => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-                InterfaceFeed::FIELD_TITLE          => 42,
-                InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
-                InterfaceFeed::FIELD_FEED_URL       => NAN,
-                InterfaceFeed::FIELD_ITEMS          => [
-                    [
-                        InterfaceFeed::FIELD_ID             => true,
-                        InterfaceFeed::FIELD_TITLE          => [],
-                        InterfaceFeed::FIELD_AUTHORS        => [],
-                    ], [
-
-                    ],
-                ]
-            ]],
-            'malformed-children-version-1'      => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
-                InterfaceFeed::FIELD_FEED_URL       => \implode("/", [fake()->url(), "feed.json"]),
-                InterfaceFeed::FIELD_ITEMS          => 'should be an array here'
-            ]],
-            'malformed-children-version-2'     => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
-                InterfaceFeed::FIELD_FEED_URL       => NAN,
-                InterfaceFeed::FIELD_ITEMS          => [
-                    [
-                        InterfaceFeed::FIELD_ID             => true,
-                        InterfaceFeed::FIELD_TITLE          => [],
-                        InterfaceFeed::FIELD_AUTHORS        => [],
-                    ],
-                ]
-            ]],
-            'malformed-children-version-3'     => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                InterfaceFeed::FIELD_HOME_PAGE_URL  => false,
-                InterfaceFeed::FIELD_FEED_URL       => NAN,
-                InterfaceFeed::FIELD_ITEMS          => [
-                    [
-                        InterfaceFeed::FIELD_ID             => true,
-                        InterfaceFeed::FIELD_TITLE          => [],
-                        InterfaceFeed::FIELD_AUTHORS        => [],
-                    ], [
-
-                    ],
-                ]
-            ]],
-            'empty-children-version-1'      => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1",
-                InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
-                InterfaceFeed::FIELD_HOME_PAGE_URL  => fake()->url(),
-                InterfaceFeed::FIELD_FEED_URL       => \implode("/", [fake()->url(), "feed.json"]),
-                InterfaceFeed::FIELD_ITEMS          => [],
-            ]],
-            'empty-version-1.0'                 => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.0",
-            ]],
-            'empty-version-1.1'                 => [(object) [
-                InterfaceFeed::FIELD_VERSION        => "https://jsonfeed.org/version/1.1",
-            ]],
-        ];
-    }
-
-    #[Group('exception')]
-    #[Group('method_capture')]
-    #[DataProvider('providerExceptionJson')]
-    public function test_exception_capture(object $feed): void
-    {
-        $this->expectException(\ValueError::class);
         $sut = new JsonFeed($feed);
 
-        $json = $this->propertyGet($sut, 'json');
-        $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        $mock = Log::partialMock();
+        $mock->shouldReceive('error');
+
+        $this->assertFalse($sut->sanitize());
+        $this->assertTrue($sut->hasErrors());
     }
 
     #[Group('success')]
     #[Group('method_execute')]
+    #[Group('method_get_context')]
     #[DataProvider('providerSuccessJson')]
     public function test_success_execute(object $feed): void
     {
         $sut = new JsonFeed($feed);
 
         $this->assertTrue($sut->execute());
+        $this->assertNotEmpty($sut->getContext());
+    }
+
+    #[Group('failure')]
+    #[Group('method_execute')]
+    #[Group('method_get_context')]
+    #[DataProvider('providerEmptyJson')]
+    public function test_failure_execute(object $feed): void
+    {
+        $sut = new JsonFeed($feed);
+        $this->assertFalse($sut->execute());
+        $this->assertEmpty($sut->getContext());
     }
 }
