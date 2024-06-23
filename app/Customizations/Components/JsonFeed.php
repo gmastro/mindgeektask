@@ -654,8 +654,8 @@ class JsonFeed implements InterfaceFeed
             ])
         );
 
-        $this->isExclusive($mapping, $iterator);
-        $this->isSelection($mapping, $iterator);
+        $this->isExclusive($mapping, $json);
+        $this->isSelection($mapping, $json);
 
         foreach($iterator as $key => $rules) {
             if(false === Arr::exists($json, $key)) {

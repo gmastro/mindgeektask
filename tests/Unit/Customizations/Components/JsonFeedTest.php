@@ -5,13 +5,16 @@ namespace Tests\Unit\Customizations\Components;
 
 use App\Customizations\Components\JsonFeed;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
+use Faker\Provider\ar_EG\Internet;
 use Illuminate\Support\Facades\Log;
+use PhpParser\Builder\Interface_;
 use Tests\Fixtures\Traits\ReflectionTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Tests\TestCase;
+use ValueError;
 
 #[CoversClass(JsonFeed::class)]
 #[UsesClass(InterfaceFeed::class)]
@@ -154,30 +157,131 @@ class JsonFeedTest extends TestCase
         $this->assertFalse($isValid);
     }
 
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Exclusions, as you may have only a single entry available from all those provided
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, array[]>>
+     */
+    public static function providerExclusiveSuccess(): array
+    {
+        $random = \rand(2,10);
+        $rules = fake()->words($random);
+        return [
+            'exclusive-01'  => [
+                [
+                    InterfaceFeed::HAS_EXCLUSIVE => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ]
+                ], [
+                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
+                    ...\array_fill_keys($rules, fake()->sentence()),
+                ]
+            ],
+            'exclusive-02'  => [
+                [
+                    InterfaceFeed::HAS_EXCLUSIVE => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ],
+                ], [
+                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
+                    ...\array_fill_keys($rules, fake()->sentence()),
+                ]
+            ],
+            'exclusive-03'  => [
+                [
+                    InterfaceFeed::HAS_EXCLUSIVE => \array_fill_keys($rules, null),
+                ], [
+                    $rules[$random - 1] => fake()->boolean(),
+                ]
+            ],
+        ];
+    }
+
     #[Group('success')]
     #[Group('method_isExclusive')]
-    public function test_success_is_exclusive(): void
+    #[DataProvider('providerExclusiveSuccess')]
+    public function test_success_is_exclusive(array $rules, array $data): void
     {
-        $this->markTestIncomplete('need to implement logic');
+        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
+        $this->methodSet($sut, 'isExclusive', [$rules, $data]);
+
+        $this->assertTrue(true);
     }
 
-    #[Group('failure')]
+    /**
+     * Data Provider
+     *
+     * Usable data for SUTs, STUBs and MOCKs
+     * Exclusions, this will confirm that 2 or more fields cannot appear the very same time
+     *
+     * @access  public
+     * @static
+     * @return  array<string, array<int, array[]>>
+     */
+    public static function providerExclusiveException(): array
+    {
+        $rules = fake()->words(11);
+        return [
+            'exclusive-01'  => [
+                [
+                    InterfaceFeed::HAS_EXCLUSIVE => [
+                        InterfaceFeed::FIELD_CONTENT_TEXT => null,
+                        InterfaceFeed::FIELD_CONTENT_HTML => null
+                    ],
+                ], [
+                    InterfaceFeed::FIELD_CONTENT_TEXT => fake()->sentence(),
+                    InterfaceFeed::FIELD_CONTENT_HTML => \sprintf("<div>%s</div>", fake()->sentence()),
+                    ...\array_fill_keys($rules, fake()->sentence()),
+                ]
+            ],
+            'exclusive-02'  => [
+                [
+                    InterfaceFeed::HAS_EXCLUSIVE =>  \array_fill_keys($rules, null),
+                ], [
+                    $rules[0] => fake()->boolean(),
+                    $rules[1] => fake()->numerify("## what ##"),
+                    $rules[2] => fake()->uuid(),
+                    $rules[3] => fake()->lexify("?? what ??"),
+                    $rules[5] => fake()->email(),
+                    $rules[7] => fake()->date(),
+                ]
+            ],
+        ];
+    }
+
+    #[Group('exception')]
     #[Group('method_isExclusive')]
-    public function test_failure_is_exclusive(): void
+    #[DataProvider('providerExclusiveException')]
+    public function test_exception_is_exclusive(array $rules, array $data): void
     {
-        $this->markTestIncomplete('need to implement logic');
+        $this->expectException(\ValueError::class);
+        $this->expectExceptionMessage(\sprintf(
+            "Found mutually exclusive keys: [%s]",
+            \implode(",", \array_keys($rules[InterfaceFeed::HAS_EXCLUSIVE]))
+        ));
+        $sut = new JsonFeed((object) [InterfaceFeed::FIELD_VERSION => "https://jsonfeed.org/version/1.1",]);
+        $this->methodSet($sut, 'isExclusive', [$rules, $data]);
     }
 
+    #[Group('current')]
     #[Group('success')]
     #[Group('method_isSelection')]
-    public function test_success_is_selection(): void
+    #[DataProvider('providerExclusiveSuccess')]
+    public function test_success_is_selection(array $rules, array $data): void
     {
         $this->markTestIncomplete('need to implement logic');
     }
 
-    #[Group('failure')]
+    #[Group('exception')]
     #[Group('method_isSelection')]
-    public function test_failure_is_selection(): void
+    public function test_exception_is_selection(): void
     {
         $this->markTestIncomplete('need to implement logic');
     }
@@ -269,7 +373,6 @@ class JsonFeedTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('failure')]
     #[Group('method_validate')]
     #[DataProvider('providerValidationPredictFailure')]
@@ -334,6 +437,7 @@ class JsonFeedTest extends TestCase
                             InterfaceFeed::FIELD_ID             => 123,
                             InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
                             InterfaceFeed::FIELD_AUTHOR         => [],
+                            InterfaceFeed::FIELD_CONTENT_TEXT   => fake()->paragraph(),
                         ]
                     ],
                 ],
@@ -348,6 +452,7 @@ class JsonFeedTest extends TestCase
                         [
                             InterfaceFeed::FIELD_ID             => 123,
                             InterfaceFeed::FIELD_TITLE          => fake()->sentence(),
+                            InterfaceFeed::FIELD_CONTENT_TEXT   => fake()->paragraph(),
                         ],
                     ]
                 ],
