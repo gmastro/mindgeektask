@@ -495,7 +495,7 @@ class JsonFeed implements InterfaceFeed
     /**
      * Magic Construct
      *
-     * Creates a file, or replaces and truncates the content of an existing one.
+     * From provided object captures the content and converts it to an associative array.
      *
      * @access  public
      * @param   object $object Raw data from source
