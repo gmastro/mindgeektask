@@ -7,7 +7,6 @@ namespace Tests\Unit\Customizations\Composites;
 use App\Customizations\Composites\Composite;
 use App\Customizations\Composites\interfaces\InterfaceComposite;
 use App\Customizations\Composites\interfaces\InterfaceShare;
-use App\Customizations\Traits\ReflectionTrait;
 use App\Customizations\Traits\ShareTrait;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -15,6 +14,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
+use Tests\Fixtures\Traits\ReflectionTrait;
 use Tests\TestCase;
 
 #[CoversClass(Composite::class)]

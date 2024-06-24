@@ -197,7 +197,8 @@ class FeedFacade
                 info("{method}. Expected: [{expected}], Got: {got}", [
                     'method'    => __METHOD__,
                     'expected'  => \implode(' -> ', [$callable, $inner]),
-                    'got'       => \gettype($context)
+                    'got'       => \gettype($context),
+                    'context'   => $context,
                 ]);
             }
 

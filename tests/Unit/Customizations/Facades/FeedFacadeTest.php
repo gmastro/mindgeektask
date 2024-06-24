@@ -20,7 +20,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Tests\Fixtures\Providers\ExternalProviderJsonFeed;
+use Tests\Fixtures\Providers\ExternalProviderFacadeFeed;
 use Tests\TestCase;
 
 #[CoversClass(FeedFacade::class)]
@@ -113,7 +113,6 @@ class FeedFacadeTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('success')]
     #[Group('method_isExclusive')]
     #[DataProvider('providerExclusiveSuccess')]
@@ -175,7 +174,6 @@ class FeedFacadeTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('exception')]
     #[Group('method_isExclusive')]
     #[DataProvider('providerExclusiveException')]
@@ -250,7 +248,6 @@ class FeedFacadeTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('success')]
     #[Group('method_isSelection')]
     #[DataProvider('providerSelectionSuccess')]
@@ -298,7 +295,6 @@ class FeedFacadeTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('exception')]
     #[Group('method_isSelection')]
     #[DataProvider('providerSelectionException')]
@@ -313,7 +309,6 @@ class FeedFacadeTest extends TestCase
         $this->methodSet($sut, 'isSelection', [$rules, $data]);
     }
 
-    #[Group('current')]
     #[Group('success')]
     #[Group('method_validate')]
     public function test_success_validate(): void
@@ -361,7 +356,6 @@ class FeedFacadeTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('failure')]
     #[Group('method_validate')]
     #[DataProvider('providerValidationFailure')]
@@ -399,7 +393,6 @@ class FeedFacadeTest extends TestCase
         ];
     }
 
-    #[Group('current')]
     #[Group('failure')]
     #[Group('method_validate')]
     #[DataProvider('providerValidationPredictFailure')]
@@ -411,7 +404,8 @@ class FeedFacadeTest extends TestCase
 
         $mock = Log::partialMock();
         $method = \sprintf("%s::validate", \get_class($sut));
-        $got = \gettype(\func_get_arg(0));
+        $context = \func_get_arg(0);
+        $got = \gettype($context);
 
         foreach(\func_get_arg(1) as $k => $v) {
             $expected = $v === null ? $k : \sprintf("%s -> %s", $k, $v);
@@ -419,8 +413,10 @@ class FeedFacadeTest extends TestCase
             $mock->shouldReceive('info')
                 ->with(\sprintf("%s. Expected: [%s], Got: %s", $method, $expected, $got), [
                     'method' => $method,
-                    'expected' => $expected, 'got' => $got]
-                );
+                    'expected' => $expected,
+                    'got' => $got,
+                    'context' => $context,
+                ]);
         }
 
         $this->assertFalse($result);
@@ -428,13 +424,13 @@ class FeedFacadeTest extends TestCase
 
     #[Group('success')]
     #[Group('method_capture')]
-    #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerSuccessJson')]
-    public function test_success_capture(object $feed): void
+    #[DataProviderExternal(ExternalProviderFacadeFeed::class, 'providerSuccessJson')]
+    public function test_success_capture(object $feed, string $class, string $rules): void
     {
-        $sut = new JsonFeed($feed);
-
-        $json = $this->propertyGet($sut, 'json');
-        $result = $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        $sut = new FeedFacade();
+        $stub = new $class($feed);
+        $json = $this->propertyGet($stub, 'json');
+        $result = $this->methodSet($sut, 'capture', [$stub->getRules()[$rules], $json]);
         
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
@@ -442,15 +438,17 @@ class FeedFacadeTest extends TestCase
 
     #[Group('failure')]
     #[Group('method_capture')]
-    #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerFailureJson')]
-    public function test_failure_capture(object $feed): void
+    #[DataProviderExternal(ExternalProviderFacadeFeed::class, 'providerFailureJson')]
+    public function test_failure_capture(object $feed, string $class, string $rules): void
     {
-        $sut = new JsonFeed($feed);
-
-        $json = $this->propertyGet($sut, 'json');
-        $result = $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        $sut = new FeedFacade();
+        $stub = new $class($feed);
+        $json = $this->propertyGet($stub, 'json');
+        $result = $this->methodSet($sut, 'capture', [$stub->getRules()[$rules], $json]);
         
         $this->assertIsArray($result);
+
+        // @todo    Need to add expected cases when this expands with different sets of providers
         $this->assertArrayHasKey(InterfaceFeed::FIELD_TITLE, $result);
         $this->assertArrayHasKey(InterfaceFeed::FIELD_ITEMS, $result);
         $this->assertArrayNotHasKey(InterfaceFeed::FIELD_HOME_PAGE_URL, $result);
@@ -460,13 +458,14 @@ class FeedFacadeTest extends TestCase
 
     #[Group('exception')]
     #[Group('method_capture')]
-    #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerExceptionJson')]
-    public function test_exception_capture(object $feed): void
+    #[DataProviderExternal(ExternalProviderFacadeFeed::class, 'providerExceptionJson')]
+    public function test_exception_capture(object $feed, string $class, string $rules): void
     {
         $this->expectException(\ValueError::class);
-        $sut = new JsonFeed($feed);
-
-        $json = $this->propertyGet($sut, 'json');
-        $this->methodSet($sut, 'capture', [$sut::VERSIONS[$sut::VERSION_X_X], $json]);
+        $sut = new FeedFacade();
+        $stub = new $class($feed);
+        $json = $this->propertyGet($stub, 'json');
+        
+        $this->methodSet($sut, 'capture', [$stub->getRules()[$rules], $json]);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Providers;
 
+use App\Customizations\Components\JsonFeed;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
 
 final class ExternalProviderJsonFeed
@@ -117,7 +118,7 @@ final class ExternalProviderJsonFeed
      * Data Provider
      *
      * Usable data for SUTs, STUBs and MOCKs
-     * Constructor exception data
+     * Constructor failure data. Some of the fields will be ignored and omitted
      *
      * @access  public
      * @static
