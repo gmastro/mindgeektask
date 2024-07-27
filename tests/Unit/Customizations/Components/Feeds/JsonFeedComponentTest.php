@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Tests\Unit\Customizations\Components;
+namespace Tests\Unit\Customizations\Components\Feeds;
 
-use App\Customizations\Components\JsonFeed;
+use App\Customizations\Components\Feeds\JsonFeedComponent;
 use App\Customizations\Facades\FeedFacade;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
 use Illuminate\Support\Facades\Log;
@@ -17,10 +17,10 @@ use Tests\Fixtures\Providers\ExternalProviderJsonFeed;
 use Tests\TestCase;
 use ValueError;
 
-#[CoversClass(JsonFeed::class)]
+#[CoversClass(JsonFeedComponent::class)]
 #[UsesClass(InterfaceFeed::class)]
 #[UsesClass(FeedFacade::class)]
-class JsonFeedTest extends TestCase
+class JsonFeedComponentTest extends TestCase
 {
     use ReflectionTrait;
 
@@ -29,7 +29,7 @@ class JsonFeedTest extends TestCase
     #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerSuccessJson')]
     public function test_success_construct(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
 
         $json = $this->propertyGet($sut, 'json');
         $version = $this->propertyGet($sut, 'version');
@@ -84,7 +84,7 @@ class JsonFeedTest extends TestCase
     #[DataProvider('providerUnsupportedInvalidVersions')]
     public function test_failure_construct(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
 
         $version = $this->propertyGet($sut, 'version');
 
@@ -98,7 +98,7 @@ class JsonFeedTest extends TestCase
     #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerSuccessJson')]
     public function test_success_sanitize(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
 
         $this->assertTrue($sut->sanitize());
         $this->assertNotEmpty($sut->getContext());
@@ -114,7 +114,7 @@ class JsonFeedTest extends TestCase
     #[DataProvider('providerUnsupportedInvalidVersions')]
     public function test_failure_sanitize(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
         $this->assertFalse($sut->sanitize());
         $this->assertEmpty($sut->getContext());
 
@@ -128,7 +128,7 @@ class JsonFeedTest extends TestCase
     #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerFailureJson')]
     public function test_failure_sanitize_validation(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
         $this->assertTrue($sut->sanitize());
 
         $context = $sut->getContext();
@@ -150,7 +150,7 @@ class JsonFeedTest extends TestCase
     #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerExceptionJson')]
     public function test_failure_sanitize_exception(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
 
         $mock = Log::partialMock();
         $mock->shouldReceive('error');
@@ -165,7 +165,7 @@ class JsonFeedTest extends TestCase
     #[DataProviderExternal(ExternalProviderJsonFeed::class, 'providerSuccessJson')]
     public function test_success_execute(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
 
         $this->assertTrue($sut->execute());
         $this->assertNotEmpty($sut->getContext());
@@ -177,7 +177,7 @@ class JsonFeedTest extends TestCase
     #[DataProvider('providerEmptyJson')]
     public function test_failure_execute(object $feed): void
     {
-        $sut = new JsonFeed($feed);
+        $sut = new JsonFeedComponent($feed);
         $this->assertFalse($sut->execute());
         $this->assertEmpty($sut->getContext());
     }

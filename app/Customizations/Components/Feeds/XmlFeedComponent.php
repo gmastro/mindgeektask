@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class AtomFeed | ./app/Customizations/Components/AtomFeed.php
+ * Class XmlFeedComponent | ./app/Customizations/Components/Feeds/XmlFeedComponent.php
  *
  * Prepares the content for storage or in case of exclusive defined structure returns the content and process it as is.
  *
@@ -10,21 +10,20 @@
  * @author      George Mastrovasilis <george.mastrovasilis@gmail.com>
  * @copyright   Copyright (c) 2023, George Mastrovasilis
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt GNU/GPLv3
- * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/AtomFeed.php
+ * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/Feeds/XmlFeedComponent.php
  */
 
 declare(strict_types=1);
 
-namespace App\Customizations\Components;
+namespace App\Customizations\Components\Feeds;
 
 use App\Customizations\Components\interfaces\InterfaceErrorCodes;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
 use App\Customizations\Traits\ErrorCodeTrait;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
- * Atom Feed
+ * Xml Feed
  *
  * Some Description
  *
@@ -33,7 +32,7 @@ use Illuminate\Support\Facades\Storage;
  * @version     0.0.1
  * @todo        Missing description
  */
-class AtomFeed implements InterfaceFeed
+class XmlFeedComponent implements InterfaceFeed
 {
     use ErrorCodeTrait;
 

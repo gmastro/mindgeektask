@@ -18,12 +18,12 @@ declare(strict_types=1);
 namespace App\Customizations\Facades;
 
 use App\Customizations\Components\interfaces\InterfaceContentTypes;
-use App\Customizations\Components\AtomFeed;
-use App\Customizations\Components\CsvFeed;
-use App\Customizations\Components\JsonFeed;
-use App\Customizations\Components\RdfFeed;
-use App\Customizations\Components\RssFeed;
-use App\Customizations\Components\XmlFeed;
+use App\Customizations\Components\Feeds\AtomFeedComponent;
+use App\Customizations\Components\Feeds\CsvFeedComponent;
+use App\Customizations\Components\Feeds\JsonFeedComponent;
+use App\Customizations\Components\Feeds\RdfFeedComponent;
+use App\Customizations\Components\Feeds\RssFeedComponent;
+use App\Customizations\Components\Feeds\XmlFeedComponent;
 use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
 use Illuminate\Support\Arr;
@@ -95,12 +95,12 @@ class FeedFacade
         }
 
         return match($mimeType) {
-            InterfaceContentTypes::APPLICATION_JSON                                 => new JsonFeed($share),
-            InterfaceContentTypes::APPLICATION_ATOM_XML                             => new AtomFeed($share),
-            InterfaceContentTypes::APPLICATION_RSS_XML                              => new RssFeed($share),
-            InterfaceContentTypes::APPLICATION_RDF_XML                              => new RdfFeed($share),
-            InterfaceContentTypes::TEXT_CSV                                         => new CsvFeed($share),
-            InterfaceContentTypes::APPLICATION_XML, InterfaceContentTypes::TEXT_XML => new XmlFeed($share),
+            InterfaceContentTypes::APPLICATION_JSON                                 => new JsonFeedComponent($share),
+            InterfaceContentTypes::APPLICATION_ATOM_XML                             => new AtomFeedComponent($share),
+            InterfaceContentTypes::APPLICATION_RSS_XML                              => new RssFeedComponent($share),
+            InterfaceContentTypes::APPLICATION_RDF_XML                              => new RdfFeedComponent($share),
+            InterfaceContentTypes::TEXT_CSV                                         => new CsvFeedComponent($share),
+            InterfaceContentTypes::APPLICATION_XML, InterfaceContentTypes::TEXT_XML => new XmlFeedComponent($share),
             default                                                                 => null,
         };
     }
@@ -190,8 +190,8 @@ class FeedFacade
                 $result |= match($callable) {
                     InterfaceFeed::IS_ARRAY  => \array_is_list($context) && $within,
                     InterfaceFeed::IS_OBJECT => true === \is_array($context) && false === \array_is_list($context),
-                    null            => true,
-                    default         => \call_user_func($callable, $context),
+                    null => true,
+                    default => \call_user_func($callable, $context),
                 };
             } catch(\TypeError $e) {
                 info("{method}. Expected: [{expected}], Got: {got}", [
@@ -247,8 +247,10 @@ class FeedFacade
         $this->isSelection($mapping, $json);
 
         foreach($iterator as $key => $rules) {
+            $isRequired = $rules[InterfaceFeed::IS_REQUIRED] ?? false;
+
             if(false === Arr::exists($json, $key)) {
-                if (true === Arr::exists($rules, InterfaceFeed::IS_REQUIRED)) {
+                if (true === $isRequired) {
                     throw new \ValueError(\sprintf("Required property: `%s` is missing", $key));
                 }
 
@@ -259,7 +261,7 @@ class FeedFacade
             $context = $json[$key];
 
             if(false === $this->validate($context, $rules[InterfaceFeed::DATATYPES])) {
-                if(true === Arr::exists($rules, InterfaceFeed::IS_REQUIRED)) {
+                if(true === $isRequired) {
                     info("{method}. Validation failure on required property: `{key}`", [
                         'method'    => __METHOD__,
                         'key'       => $key,
@@ -277,8 +279,10 @@ class FeedFacade
                 continue;
             }
 
-            if(true === Arr::exists($rules, InterfaceFeed::CHILDREN)) {
-                if(true === Arr::exists($rules[InterfaceFeed::CHILDREN], InterfaceFeed::IS_REQUIRED) && [] === $context) {
+            $children = $rules[InterfaceFeed::CHILDREN] ?? [];
+
+            if([] !== $children) {
+                if(true === Arr::exists($children, InterfaceFeed::IS_REQUIRED) && [] === $context) {
                     throw new \ValueError(\sprintf("Required property: `%s` exists, yet is empty", $key));
                 }
 
@@ -287,13 +291,13 @@ class FeedFacade
                     for($i = 0; $i < $sizeOfContext; $i++) {
                         $container[$key][$i] = \array_merge(
                             $container[$key][$i] ??= [],
-                            $this->capture($rules[InterfaceFeed::CHILDREN], $context[$i])
+                            $this->capture($children, $context[$i])
                         );
                     }
                 } else {
                     $container[$key] = \array_merge(
                         $container[$key] ?? [],
-                        $this->capture($rules[InterfaceFeed::CHILDREN], $context)
+                        $this->capture($children, $context)
                     );
                 }
 

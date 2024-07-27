@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Providers;
 
-use App\Customizations\Components\JsonFeed;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
 
 final class ExternalProviderJsonFeed

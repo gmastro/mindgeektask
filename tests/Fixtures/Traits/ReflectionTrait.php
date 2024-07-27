@@ -10,7 +10,7 @@
  * @author      George Mastrovasilis <george.mastrovasilis@gmail.com>
  * @copyright   Copyright (c) 2023, George Mastrovasilis
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt GNU/GPLv3
- * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/AtomFeed.php
+ * @link        https://github.com/gmastro/mindgeektask/tree/master/tests/Fixtures/Traits/ReflectionTrait.php
  */
 
 declare(strict_types=1);

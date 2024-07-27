@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Customizations\Facades;
 
-use App\Customizations\Components\AtomFeed;
-use App\Customizations\Components\CsvFeed;
-use App\Customizations\Components\JsonFeed;
-use App\Customizations\Components\RdfFeed;
-use App\Customizations\Components\RssFeed;
-use App\Customizations\Components\XmlFeed;
+use App\Customizations\Components\Feeds\AtomFeedComponent;
+use App\Customizations\Components\Feeds\CsvFeedComponent;
+use App\Customizations\Components\Feeds\JsonFeedComponent;
+use App\Customizations\Components\Feeds\RdfFeedComponent;
+use App\Customizations\Components\Feeds\RssFeedComponent;
+use App\Customizations\Components\Feeds\XmlFeedComponent;
 use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Customizations\Facades\FeedFacade;
@@ -27,12 +27,12 @@ use Tests\TestCase;
 #[UsesClass(ExamineComponent::class)]
 #[UsesClass(DownloadComponent::class)]
 #[UsesClass(FeedFacade::class)]
-#[UsesClass(JsonFeed::class)]
-#[UsesClass(AtomFeed::class)]
-#[UsesClass(CsvFeed::class)]
-#[UsesClass(RssFeed::class)]
-#[UsesClass(RdfFeed::class)]
-#[UsesClass(XmlFeed::class)]
+#[UsesClass(JsonFeedComponent::class)]
+#[UsesClass(AtomFeedComponent::class)]
+#[UsesClass(CsvFeedComponent::class)]
+#[UsesClass(RssFeedComponent::class)]
+#[UsesClass(RdfFeedComponent::class)]
+#[UsesClass(XmlFeedComponent::class)]
 class FeedFacadeTest extends TestCase
 {
     use ReflectionTrait;

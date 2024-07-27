@@ -3,37 +3,34 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Customizations\Proxies;
 
-use App\Customizations\Components\AtomFeed;
-use App\Customizations\Components\CsvFeed;
-use App\Customizations\Components\JsonFeed;
-use App\Customizations\Components\RdfFeed;
-use App\Customizations\Components\RssFeed;
-use App\Customizations\Components\XmlFeed;
+use App\Customizations\Components\Feeds\AtomFeedComponent;
+use App\Customizations\Components\Feeds\CsvFeedComponent;
+use App\Customizations\Components\Feeds\JsonFeedComponent;
+use App\Customizations\Components\Feeds\RdfFeedComponent;
+use App\Customizations\Components\Feeds\RssFeedComponent;
+use App\Customizations\Components\Feeds\XmlFeedComponent;
 use App\Customizations\Composites\DownloadComponent;
 use App\Customizations\Composites\ExamineComponent;
 use App\Customizations\Facades\FeedFacade;
 use App\Customizations\Proxies\FeedProxy;
-use App\Customizations\Proxies\interfaces\InterfaceFeed;
-use Illuminate\Support\Facades\Log;
 use Tests\Fixtures\Traits\ReflectionTrait;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Tests\Fixtures\Providers\ExternalProviderJsonFeed;
 use Tests\TestCase;
 
 #[CoversClass(FeedProxy::class)]
 #[UsesClass(ExamineComponent::class)]
 #[UsesClass(DownloadComponent::class)]
 #[UsesClass(FeedFacade::class)]
-#[UsesClass(JsonFeed::class)]
-#[UsesClass(AtomFeed::class)]
-#[UsesClass(CsvFeed::class)]
-#[UsesClass(RssFeed::class)]
-#[UsesClass(RdfFeed::class)]
+#[UsesClass(JsonFeedComponent::class)]
+#[UsesClass(AtomFeedComponent::class)]
+#[UsesClass(CsvFeedComponent::class)]
+#[UsesClass(RssFeedComponent::class)]
+#[UsesClass(RdfFeedComponent::class)]
+#[UsesClass(XmlFeedComponent::class)]
 class FeedProxyTest extends TestCase
 {
     use ReflectionTrait;
@@ -93,25 +90,25 @@ class FeedProxyTest extends TestCase
                 [
                     'source'    => "https://freetestdata.com/wp-content/uploads/2023/04/1.05KB_JSON-File_FreeTestData.json"
                 ],
-                JsonFeed::class,
+                JsonFeedComponent::class,
             ],
             'sample-rdf'    => [
                 [
                     'source'    => 'https://web.resource.org/rss/1.0/schema.rdf'
                 ],
-                XmlFeed::class,
+                XmlFeedComponent::class,
             ],
             'sample-atom'   => [
                 [
                     'source'    => 'www.intertwingly.net/blog/index.atom'
                 ],
-                AtomFeed::class,
+                AtomFeedComponent::class,
             ],
             'sample-csv'    => [
                 [
                     'source'    => 'https://cdn.wsform.com/wp-content/uploads/2020/06/industry.csv'
                 ],
-                CsvFeed::class
+                CsvFeedComponent::class
             ],
         ];
     }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class JsonFeed | ./app/Customizations/Components/JsonFeed.php
+ * Class JsonFeedComponent | ./app/Customizations/Components/Feeds/JsonFeedComponent.php
  *
  * Prepares the content for storage or in case of exclusive defined structure returns the content and process it as is.
  *
@@ -10,12 +10,12 @@
  * @author      George Mastrovasilis <george.mastrovasilis@gmail.com>
  * @copyright   Copyright (c) 2023, George Mastrovasilis
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt GNU/GPLv3
- * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/JsonFeed.php
+ * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/Feeds/JsonFeedComponent.php
  */
 
 declare(strict_types=1);
 
-namespace App\Customizations\Components;
+namespace App\Customizations\Components\Feeds;
 
 use App\Customizations\Components\interfaces\InterfaceErrorCodes;
 use App\Customizations\Facades\FeedFacade;
@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Log;
  * @package     Feeds
  * @version     0.0.1
  */
-class JsonFeed implements InterfaceFeed
+class JsonFeedComponent implements InterfaceFeed
 {
     use ErrorCodeTrait;
 

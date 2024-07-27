@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Providers;
 
-use App\Customizations\Components\JsonFeed;
+use App\Customizations\Components\Feeds\JsonFeedComponent;
 
 final class ExternalProviderFacadeFeed
 {
@@ -23,8 +23,8 @@ final class ExternalProviderFacadeFeed
         $array = ExternalProviderJsonFeed::providerSuccessJson();
 
         foreach($array as $key => &$value) {
-            $value[] = JsonFeed::class;
-            $value[] = JsonFeed::VERSION_X_X;
+            $value[] = JsonFeedComponent::class;
+            $value[] = JsonFeedComponent::VERSION_X_X;
         }
 
         return $array;
@@ -45,8 +45,8 @@ final class ExternalProviderFacadeFeed
         $array = ExternalProviderJsonFeed::providerFailureJson();
 
         foreach($array as $key => &$value) {
-            $value[] = JsonFeed::class;
-            $value[] = JsonFeed::VERSION_X_X;
+            $value[] = JsonFeedComponent::class;
+            $value[] = JsonFeedComponent::VERSION_X_X;
         }
 
         return $array;
@@ -67,8 +67,8 @@ final class ExternalProviderFacadeFeed
         $array = ExternalProviderJsonFeed::providerExceptionJson();
 
         foreach($array as &$value) {
-            $value[] = JsonFeed::class;
-            $value[] = JsonFeed::VERSION_X_X;
+            $value[] = JsonFeedComponent::class;
+            $value[] = JsonFeedComponent::VERSION_X_X;
         };
 
         return $array;

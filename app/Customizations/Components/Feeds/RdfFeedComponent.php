@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class XmlFeed | ./app/Customizations/Components/XmlFeed.php
+ * Class RdfFeedComponent | ./app/Customizations/Components/Feeds/RdfFeedComponent.php
  *
  * Prepares the content for storage or in case of exclusive defined structure returns the content and process it as is.
  *
@@ -10,12 +10,12 @@
  * @author      George Mastrovasilis <george.mastrovasilis@gmail.com>
  * @copyright   Copyright (c) 2023, George Mastrovasilis
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt GNU/GPLv3
- * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/XmlFeed.php
+ * @link        https://github.com/gmastro/mindgeektask/tree/master/app/Customizations/Components/Feeds/RdfFeedComponent.php
  */
 
 declare(strict_types=1);
 
-namespace App\Customizations\Components;
+namespace App\Customizations\Components\Feeds;
 
 use App\Customizations\Components\interfaces\InterfaceErrorCodes;
 use App\Customizations\Proxies\interfaces\InterfaceFeed;
@@ -23,7 +23,7 @@ use App\Customizations\Traits\ErrorCodeTrait;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Xml Feed
+ * Rdf Feed
  *
  * Some Description
  *
@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Log;
  * @version     0.0.1
  * @todo        Missing description
  */
-class XmlFeed implements InterfaceFeed
+class RdfFeedComponent implements InterfaceFeed
 {
     use ErrorCodeTrait;
 
