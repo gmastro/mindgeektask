@@ -26,7 +26,7 @@ class DownloadComponentTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        Storage::fake('moufa');
+        Storage::fake(TestCase::STORAGE);
     }
 
     #[Group('success')]
@@ -64,11 +64,11 @@ class DownloadComponentTest extends TestCase
     {
         return [
             'hamilton-image'=> [self::setExaminer([
-                'disk'   => 'moufa',
+                'disk'   => TestCase::STORAGE,
                 'source' => "https://www.hamiltonstaracademy.com/images/frontpage/portfolio/fullsize/Screenshot1.png"
             ])],
             'example.com'   => [self::setExaminer([
-                'disk'   => 'moufa',
+                'disk'   => TestCase::STORAGE,
                 'source' => "https://example.com"
             ])],
         ];
@@ -110,7 +110,7 @@ class DownloadComponentTest extends TestCase
     {
         return [
             'google-redirect'   => [self::coughtExaminer([
-                'disk'   => 'moufa',
+                'disk'   => TestCase::STORAGE,
                 'source' => "https://google.com"
             ])],
         ];

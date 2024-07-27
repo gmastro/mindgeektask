@@ -103,7 +103,7 @@ class CurlComponentTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         $path = $storage->path('');
         $filename = \sprintf("%s/%s", $path, Uuid::uuid4()->toString());
         $out = new FileOpenComponent($filename);

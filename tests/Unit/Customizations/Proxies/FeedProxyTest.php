@@ -36,20 +36,12 @@ class FeedProxyTest extends TestCase
     use ReflectionTrait;
 
     /**
-     * Storage Name Property
-     *
-     * A dummy filesystem storage container for downloaded content.
-     *
-     * @access  public
-     * @static
-     * @var     string STORAGE
+     * {@inheritdoc}
      */
-    public const STORAGE = 'fake_storage';
-
     public function setUp(): void
     {
         parent::setUp();
-        Storage::fake(self::STORAGE);
+        Storage::fake(TestCase::STORAGE);
     }
 
     /**
@@ -63,7 +55,7 @@ class FeedProxyTest extends TestCase
      */
     private function downloader(array $acquire): DownloadComponent
     {
-        $acquire += ['disk' => self::STORAGE];
+        $acquire += ['disk' => TestCase::STORAGE];
 
         $examine = new ExamineComponent();
         $examine->acquire((object) $acquire)->execute();

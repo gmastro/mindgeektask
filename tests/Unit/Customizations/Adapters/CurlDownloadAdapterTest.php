@@ -57,7 +57,7 @@ class CurlDownloadAdapterTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         $path = $storage->path('');
         $component = $this->urlToCurlComponent($url);
 

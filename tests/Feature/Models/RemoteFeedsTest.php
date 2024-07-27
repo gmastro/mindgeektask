@@ -61,7 +61,7 @@ class RemoteFeedsTest extends TestCase
         $collection = RemoteFeeds::factory()->count(1)->create([
             'source'    => "https://place-hold.it/244x344/666321/123666.jpg&text=lorem-ipsum&bold&italic&fontsize=11",
             'is_active' => true,
-            'handle'    => [DownloadJob::class => ['moufa']],
+            'handle'    => [DownloadJob::class => [TestCase::STORAGE]],
             'name'      => 'PlaceHoldJPG',
         ]);
         
@@ -100,7 +100,7 @@ class RemoteFeedsTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        Storage::fake('moufa');
+        Storage::fake(TestCase::STORAGE);
         Event::fake([
             RemoteFeedCreated::class
         ]);
@@ -110,7 +110,7 @@ class RemoteFeedsTest extends TestCase
         RemoteFeeds::factory()->count(1)->create([
             'source'    => "https://place-hold.it/244x344/666321/123666.png&text=lorem-ipsum&bold&italic&fontsize=11",
             'is_active' => false,
-            'handle'    => [DownloadJob::class => ['moufa']],
+            'handle'    => [DownloadJob::class => [TestCase::STORAGE]],
             'name'      => 'PlaceHoldPNG',
         ]);
 
@@ -127,7 +127,7 @@ class RemoteFeedsTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        Storage::fake('moufa');
+        Storage::fake(TestCase::STORAGE);
         Event::fake([
             RemoteFeedCreated::class
         ]);
@@ -137,7 +137,7 @@ class RemoteFeedsTest extends TestCase
         RemoteFeeds::factory()->count(1)->create([
             'source'    => "https://place-hold.it/244x344/666321/123666.jpg&text=lorem-ipsum&bold&italic&fontsize=11",
             'is_active' => true,
-            'handle'    => [DownloadJob::class => ['moufa']],
+            'handle'    => [DownloadJob::class => [TestCase::STORAGE]],
             'name'      => 'PlaceHoldJPG',
         ]);
 
@@ -154,7 +154,7 @@ class RemoteFeedsTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         Event::fake([
             RemoteFeedDeleting::class
         ]);
@@ -164,7 +164,7 @@ class RemoteFeedsTest extends TestCase
         $sut = RemoteFeeds::factory()->count(1)->create([
             'source'    => "https://place-hold.it/244x344/666321/123666.jpg&text=lorem-ipsum&bold&italic&fontsize=11",
             'is_active' => true,
-            'handle'    => [DownloadJob::class => ['moufa']],
+            'handle'    => [DownloadJob::class => [TestCase::STORAGE]],
             'name'      => 'PlaceHoldJPG',
         ])->first();
 

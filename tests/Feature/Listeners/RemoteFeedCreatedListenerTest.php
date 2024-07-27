@@ -52,14 +52,14 @@ class RemoteFeedCreatedListenerTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        Storage::fake('moufa');
+        Storage::fake(TestCase::STORAGE);
         Bus::fake();
 
         RemoteFeeds::unsetEventDispatcher();
         $model = RemoteFeeds::factory()->count(1)->create([
             'source'    => "https://place-hold.it/244x344/666321/123666.jpg&text=lorem-ipsum&bold&italic&fontsize=11",
             'is_active' => true,
-            'handle'    => [DownloadJob::class => ['moufa']],
+            'handle'    => [DownloadJob::class => [TestCase::STORAGE]],
             'name'      => 'PlaceHoldJPG',
         ])->first();
 

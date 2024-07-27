@@ -15,7 +15,6 @@ use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Tests\Fixtures\Providers\ExternalProviderJsonFeed;
 use Tests\TestCase;
-use ValueError;
 
 #[CoversClass(JsonFeedComponent::class)]
 #[UsesClass(InterfaceFeed::class)]

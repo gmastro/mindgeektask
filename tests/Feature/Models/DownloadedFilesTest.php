@@ -41,7 +41,7 @@ class DownloadedFilesTest extends TestCase
     public static function providerWithoutFiles(): array
     {
         return [
-            'moufa'     => ['moufa', 'Screenshot1.png', 'image/png', true],
+            TestCase::STORAGE => [TestCase::STORAGE, 'Screenshot1.png', 'image/png', true],
             'whatever'  => ['foo', 'Screenshot2.png', 'image/jpg', true],
         ];
     }
@@ -90,13 +90,13 @@ class DownloadedFilesTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         $storage->put($filename, $from->get($filename));
 
         $this->assertDatabaseCount('downloaded_files', 0);
         $sut = DownloadedFiles::create([
             'filename'  => $filename,
-            'disk'      => 'moufa',
+            'disk'      => TestCase::STORAGE,
             'mime_type' => $mime,
             'is_cached' => $isCached,
         ]);

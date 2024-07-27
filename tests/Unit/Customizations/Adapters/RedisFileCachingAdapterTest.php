@@ -60,7 +60,7 @@ class RedisFileCachingAdapterTest extends TestCase
             new DownloadedFilesCreateComponent(),
         ]), (object) [
             'source'    => $url,
-            'disk'      => 'moufa',
+            'disk'      => TestCase::STORAGE,
         ]);
         $composite->execute();
         return $composite;
@@ -74,7 +74,7 @@ class RedisFileCachingAdapterTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
 
         \array_map(fn ($link) => self::download($link), $url);
         $collection = DownloadedFiles::all();
@@ -101,7 +101,7 @@ class RedisFileCachingAdapterTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         \array_map(fn ($link) => self::download($link), self::providerUrls()['images-only'][0]);
         $collection = DownloadedFiles::all();
         $collection->map(fn ($model) => $storage->delete($model->filename));
@@ -121,7 +121,7 @@ class RedisFileCachingAdapterTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         \array_map(fn ($link) => self::download($link), self::providerUrls()['images-only'][0]);
         $collection = DownloadedFiles::all();
         $collection->map(fn ($model) => $model->delete());
@@ -141,7 +141,7 @@ class RedisFileCachingAdapterTest extends TestCase
         /**
          * @var FilesystemManager $storage
          */
-        $storage = Storage::fake('moufa');
+        $storage = Storage::fake(TestCase::STORAGE);
         \array_map(fn ($link) => self::download($link), self::providerUrls()['images-only'][0]);
         $collection = DownloadedFiles::all();
 
