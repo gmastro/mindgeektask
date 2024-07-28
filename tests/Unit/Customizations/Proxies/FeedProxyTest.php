@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\Attributes\UsesClass;
+use Tests\Fixtures\Providers\ExternalProviderFeedUrls;
 use Tests\TestCase;
 
 #[CoversClass(FeedProxy::class)]
@@ -66,48 +68,9 @@ class FeedProxyTest extends TestCase
         return $download;
     }
 
-    /**
-     * URL Feed Data Provider
-     *
-     * Contains various links for downloading feed content, for validation and processing
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<string, string>|string>
-     */
-    public static function providerSuccessUrls(): array
-    {
-        return [
-            'sample-json'   => [
-                [
-                    'source'    => "https://freetestdata.com/wp-content/uploads/2023/04/1.05KB_JSON-File_FreeTestData.json"
-                ],
-                JsonFeedComponent::class,
-            ],
-            'sample-rdf'    => [
-                [
-                    'source'    => 'https://web.resource.org/rss/1.0/schema.rdf'
-                ],
-                XmlFeedComponent::class,
-            ],
-            'sample-atom'   => [
-                [
-                    'source'    => 'www.intertwingly.net/blog/index.atom'
-                ],
-                AtomFeedComponent::class,
-            ],
-            'sample-csv'    => [
-                [
-                    'source'    => 'https://cdn.wsform.com/wp-content/uploads/2020/06/industry.csv'
-                ],
-                CsvFeedComponent::class
-            ],
-        ];
-    }
-
     #[Group('constructor')]
     #[Group('success')]
-    #[DataProvider('providerSuccessUrls')]
+    #[DataProviderExternal(ExternalProviderFeedUrls::class, 'providerSuccessUrls')]
     public function test_success_constructor_header(array $acquire, string $expected): void
     {
         $facade = new FeedFacade();
@@ -118,34 +81,9 @@ class FeedProxyTest extends TestCase
         $this->assertInstanceOf($expected, $feed);
     }
 
-    /**
-     * URL Feed Data Provider
-     *
-     * Contains links that may not be processed
-     *
-     * @access  public
-     * @static
-     * @return  array<string, array<string, string>>
-     */
-    public static function providerExceptionUrls(): array
-    {
-        return [
-            'sample-png'    => [
-                [
-                    'source'    => "https://www.hamiltonstaracademy.com//images/frontpage/portfolio/fullsize/Screenshot1.png"
-                ],
-            ],
-            'sample-html'   => [
-                [
-                    'source'    => "https://example.com"
-                ],
-            ],
-        ];
-    }
-
     #[Group('constructor')]
     #[Group('exception')]
-    #[DataProvider('providerExceptionUrls')]
+    #[DataProviderExternal(ExternalProviderFeedUrls::class, 'providerExceptionUrls')]
     public function test_exception_constructor_header(array $acquire): void
     {
         $this->expectException(\TypeError::class);
