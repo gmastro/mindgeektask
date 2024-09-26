@@ -81,7 +81,31 @@ return new class extends Migration
                 ->primary('id');
         });
 
-        Schema::create('thumbnails', function (Blueprint $table) {
+        Schema::connection('sqlite')->create('thumbnails', function (Blueprint $table) {
+            $table
+                ->id();
+            $table
+                ->foreignId('remote_feed_id')
+                ->constrained('remote_feeds', 'id', 'fk_thumbnails_remote_feeds')
+                ->cascadeOnDelete();
+            $table
+                ->string('url');
+            $table
+                ->integer('width')
+                ->default(234);
+            $table
+                ->integer('height')
+                ->default(344);
+            $table
+                ->string('media', 64)
+                ->default('pc');
+            $table
+                ->timestamps();
+            $table
+                ->unique(['url', 'media'], 'unq_thumbnails_um');
+        });
+
+        Schema::connection('mysql')->create('thumbnails', function (Blueprint $table) {
             $table = $this->tableDefault($table);
             $table
                 ->id();
